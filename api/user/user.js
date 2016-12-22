@@ -149,7 +149,7 @@ function removeBatch(_ids){
 
 function login(login, passwd){
 
-	const bcrypt = require('bcrypt')
+	const bcrypt = require('bcrypt-nodejs')
 
 	return new Promise((resolve, reject) => {
 

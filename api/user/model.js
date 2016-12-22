@@ -47,7 +47,7 @@ schema.pre('save', function(next) {
 	if(!this.isModified('passwd')) return next();
 
 	// generate a salt
-	const bcrypt = require('bcrypt')
+	const bcrypt = require('bcrypt-nodejs')
 	bcrypt.genSalt(10, (err, salt) => {
 		if(err) return next(err);
 
