@@ -146,7 +146,13 @@ function extend(_id, data){
 				if(ends.isBefore(new Date())) ends = moment()
 				ends = ends.add(duration, 'days').toDate()
 
-				const transaction = _transaction(duration, data.transaction)
+				const transaction = _transaction(duration, data)
+
+				console.log('*'.repeat(100))
+				console.log(transaction)
+				console.log(data)
+				console.log('*'.repeat(100))
+
 				transaction.type = 'extend'
 
 				return model.findOneAndUpdate(
@@ -157,7 +163,6 @@ function extend(_id, data){
 			})
 			.then(subscription => resolve(tools.toObject(subscription)))
 			.catch(err => reject(err))
-
 	})
 
 }
