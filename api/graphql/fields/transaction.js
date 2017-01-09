@@ -19,6 +19,8 @@ const Transaction = new GraphQLObjectType({
 			amount: {type: GraphQLFloat},
 			duration: {type: GraphQLInt},
 			type: {type: GraphQLString},
+			method: {type: GraphQLString},
+			is_free: {type: GraphQLBoolean},
 			subscription: {type: Subscription, resolve: (_, args, root, ast) => getSubscription(_._id)}
 		}
 	}
@@ -34,6 +36,14 @@ const SearchTransaction = new GraphQLObjectType({
 	}
 })
 
+const StatsTransaction = new GraphQLObjectType({
+	name: 'StatsTransaction',
+	fields: {
+		month: { type: GraphQLInt },
+		year: { type: GraphQLInt }
+	}
+})
+
 function getSubscription(_id){
 	const api = require('../../subscription/subscription')
 	return api.getFromTransactionId(_id)
@@ -41,5 +51,6 @@ function getSubscription(_id){
 
 module.exports = {
 	Transaction,
-	SearchTransaction
+	SearchTransaction,
+	StatsTransaction
 }

@@ -21,6 +21,7 @@ const schema = mongoose.Schema({
 	verification: String,   // le code de verification
 
 	is_reseller: Boolean,
+	is_admin: Boolean,
 
 	sponsorCode: String,
 	sponsoredCount: {type: Number, 'default': 0},
@@ -52,7 +53,7 @@ schema.pre('save', function(next) {
 		if(err) return next(err);
 
 		// hash the password using our new salt
-		bcrypt.hash(this.passwd, salt, (err, hash) => {
+		bcrypt.hash(this.passwd, salt, null, (err, hash) => {
 			if(err) return next(err);
 
 			// override the cleartext password with the hashed one

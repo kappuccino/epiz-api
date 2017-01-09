@@ -130,16 +130,15 @@ function requestNotFound(req, res, next){
  */
 function requestFail(err, req, res, next){
 
-	var code = err.code || 500;
+	var code = err.code || 200
 
-	if(code == 404) return requestNotFound(req, res, next);
+	if(code == 404) return requestNotFound(req, res, next)
 
-	res.status(code);
+	res.status(code)
 
-	if(code >= 500){
-		console.error(err);
-		console.error(err.stack);
-	}
+	logger.debug(err)
+	console.error(err.stack)
+
 
 	// respond with json
 	if(req.accepts('json')){

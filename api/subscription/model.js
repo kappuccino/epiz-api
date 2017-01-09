@@ -6,7 +6,9 @@ const Transaction = mongoose.Schema({
 	platform: String,
 	amount: Number,
 	duration: Number,
-	type: String // create, extend
+	is_free: {type: Boolean, 'default': false},
+	type: String, // create, extend
+	method: String // check, creditcard, paypal, inapp
 })
 
 const schema = mongoose.Schema({

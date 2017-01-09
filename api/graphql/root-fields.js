@@ -7,8 +7,8 @@ const { SearchSerie, Serie } = require('./fields/serie')
 const { SearchStory, Story } = require('./fields/story')
 const { SearchEpisode, Episode } = require('./fields/episode')
 const { SearchUser, User } = require('./fields/user')
-const { SearchSubscription, Subscription } = require('./fields/subscription')
-const { SearchTransaction, Transaction } = require('./fields/transaction')
+const { SearchSubscription, Subscription, ActiveSubscription } = require('./fields/subscription')
+const { SearchTransaction, Transaction, StatsTransaction } = require('./fields/transaction')
 
 ////////////////////////////////
 
@@ -143,11 +143,21 @@ const searchSubscription = {
 	args: {
 		limit: { type: GraphQLInt },
 		skip: { type: GraphQLInt },
-		_user: { type: GraphQLString }
+		_user: { type: GraphQLString },
+		starts: { type: GraphQLString },
+		ends: { type: GraphQLString }
 	},
 	resolve: (obj, args, root, ast) => {
 		const api = require('../subscription/subscription')
 		return api.search(args)
+	}
+}
+
+const activeSubscription = {
+	type: ActiveSubscription,
+	resolve: () => {
+		const api = require('../subscription/subscription')
+		return api.active()
 	}
 }
 
@@ -181,6 +191,17 @@ const searchTransaction = {
 	}
 }
 
+const statsTransaction = {
+	type: StatsTransaction,
+	args: {
+		days: { type: GraphQLInt }
+	},
+	resolve: (obj, args, root, ast) => {
+		const api = require('../transaction/transaction')
+		return api.stats(args)
+	}
+}
+
 const getTransaction = {
 	type: Transaction,
 	args: {
@@ -209,7 +230,10 @@ module.exports = {
 
 	searchSubscription,
 	getSubscription,
+	activeSubscription,
 
 	searchTransaction,
-	getTransaction
+	getTransaction,
+	statsTransaction
+
 }

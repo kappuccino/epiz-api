@@ -105,6 +105,18 @@ function search(opt){
 
 }
 
+function stats(args){
+
+	return Promise.all([_stats('month', args), _stats('year', args)])
+		.then(values => {
+			return {
+				month: values[0],
+				year: values[1]
+			}
+		})
+
+}
+
 /*function create(data){
 
 	if(data._id) delete data._id
@@ -263,11 +275,55 @@ function _transaction(duration, data={}){
 	return transaction
 }
 
+function _stats(duration, opt){
+
+	const moment = require('moment')
+	const filters = {}
+	const unwind = {
+		path: '$transactions',
+		preserveNullAndEmptyArrays: false
+	}
+	const project = {
+		_id: '$transactions._id',
+		date: '$transactions.date',
+		ref: '$transactions.ref',
+		platform: '$transactions.platform',
+		amount: '$transactions.amount',
+		duration: '$transactions.duration',
+		type: '$transactions.type'
+	}
+
+	if(duration == 'month') filters.duration = {$lte: 30}
+	if(duration == 'year')  filters.duration = {$gte: 360}
+
+	if(opt.days){
+		opt.from = moment().subtract(opt.days, 'days');
+	}
+
+	if(opt.from || opt.to) filters.date = {}
+	if(opt.from) filters.date['$gte'] = new Date(opt.from)
+	if(opt.to)   filters.date['$lte'] = new Date(opt.to)
+
+	return new Promise((resolve, reject) => {
+		model
+			.aggregate({$match: {}})
+			.unwind(unwind)
+			.project(project)
+			.match(filters)
+			.group({_id: null, count: {$sum: 1}})
+			.exec((err, res) => {
+				if (err) return reject(err)
+				resolve(res.length ? res[0]['count'] : 0)
+			})
+	})
+
+}
 
 
 module.exports = {
 	getById,
 	search,
+	stats,
 	//create,
 	//update,
 	//extend,

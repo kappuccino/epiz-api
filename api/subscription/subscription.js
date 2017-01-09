@@ -63,26 +63,36 @@ function create(data){
 	return new Promise((resolve, reject) => {
 
 		if(!data._serie) throw new Error('no _serie')
-		if(!data._story) throw new Error('no _story')
-		if(!data._episode) throw new Error('no _episode')
 
 		const duration = parseInt(data.duration)
 		if(isNaN(Math.floor(duration)) || duration <= 0) throw new Error('duration is not valid')
 
-		const $subscription = new model(data)
+		// Consolidate (find first Story + first Episode)
 
-		// Set 'ends' from duration
-		const ends = _dateFromDuration(duration);
-		if(ends) $subscription.set('ends', ends)
+		return _firstStoryAndEpisode(data._serie, data._story, data._episode)
+			.then(first => {
 
-		// Transaction
-		if(data.transaction && Object.keys(data.transaction).length){
-			const transaction = _transaction(duration, data.transaction)
-			transaction.type = 'create'
-			$subscription.set('transactions', [transaction])
-		}
+				if(!first.story) throw new Error('no _story')
+				data._story = first.story
 
-		return $subscription.save()
+				if(!first.episode) throw new Error('no _episode')
+				data._episode = first.episode
+
+				const $subscription = new model(data)
+
+				// Set 'ends' from duration
+				const ends = _dateFromDuration(duration);
+				if(ends) $subscription.set('ends', ends)
+
+				// Transaction
+				if(data.transaction && Object.keys(data.transaction).length){
+					const transaction = _transaction(duration, data.transaction)
+					$subscription.set('transactions', [transaction])
+				}
+
+				// On sauve
+				return $subscription.save()
+			})
 			.then(subscription => getById(subscription._id))
 			.then(subscription => resolve(subscription))
 			.catch(err => reject(err))
@@ -168,11 +178,25 @@ function remove(_id){
 
 }
 
+function active(){
+
+	return new Promise((resolve, reject) => {
+
+		model.find({ends: {$lt: new Date()} }).count().exec((err, total) => {
+			if(err) return reject(err)
+			resolve({total})
+		})
+
+	})
+
+}
 
 
 //-- private fn()
 
 function _search(query, opt){
+
+	console.log(opt)
 
 	;['_serie', '_story', '_episode', '_user', '_mailCursor'].forEach(f => {
 		if(!opt[f]) return;
@@ -186,6 +210,18 @@ function _search(query, opt){
 			? query.where('transactions.ref').in(ref)
 			: query.where('transactions.ref').eq(ref)
 	}
+
+	if('starts' in opt && opt.starts){
+		const starts = new Date(opt.starts)
+		if(starts.getTime) query.where('starts').gte(starts)
+	}
+
+	if('ends' in opt && opt.ends){
+		const ends = new Date(opt.ends)
+		if(ends.getTime) query.where('ends').lte(ends)
+	}
+
+	//console.log(query._conditions);
 
 	query = tools.sanitizeSearch(query, opt)
 
@@ -202,18 +238,61 @@ function _dateFromDuration(duration, now=new Date()){
 }
 
 function _transaction(duration, data={}){
-	const transaction = {
-			date: new Date(),
-			duration: duration
-		}
 
-		;['ref', 'platform', 'amount', 'type'].forEach(f => {
-		if(data[f]) transaction[f] = data[f]
+	const transaction = Object.assign({}, data, {
+		duration,
+		date: new Date(),
+		type: data.type || 'create',
+		is_free: data.is_free !== undefined ? data.is_free : false
 	})
+
+	if(transaction.is_free) transaction.amount = 0
 
 	return transaction
 }
 
+function _firstStoryAndEpisode(serie, story=null, episode=null){
+
+	let out = {serie, story, episode}
+
+	return _getFirstStory(serie, story)
+		.then((story) => {
+			out.story = story
+			return _getFirstEpisode(story, episode)
+		})
+		.then(episode => {
+			out.episode = episode
+			return out
+		})
+
+}
+
+function _getFirstStory(serie, story=null){
+
+	if(story) return Promise.resolve(story)
+
+	const api = require('../story/story')
+
+	return api.getFromSerie(serie)
+		.then(stories => {
+			stories = stories.sort((a, b) => a.index > b.index)
+			return stories.length ? stories[0]._id : null;
+		})
+}
+
+function _getFirstEpisode(story, episode=null){
+
+	if(episode) return Promise.resolve(episode)
+
+	const api = require('../episode/episode')
+
+	return api.getFromStory(story)
+		.then(episodes => {
+			episodes = episodes.sort((a, b) => a.index > b.index)
+			return episodes.length ? episodes[0]._id : null;
+		})
+
+}
 
 
 module.exports = {
@@ -223,5 +302,6 @@ module.exports = {
 	create,
 	update,
 	extend,
-	remove
+	remove,
+	active
 }

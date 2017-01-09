@@ -205,20 +205,23 @@ function resetPassword(user, reset, passwd){
 
 		if(!user) throw new Error('no user _id')
 		if(!reset) throw new Error('no rest _id')
-		reset = new mongoose.Types.ObjectId(reset)
-
 		if(!passwd) throw new Error('no passwd')
+
+		reset = new mongoose.Types.ObjectId(reset)
 
 		model.findOne({_id:user, reset:reset}).exec()
 			.then($user => {
-				if(!$user) throw new Error('user not found')
+				if(!$user) throw new Error('user or reset token not found')
 
 				$user.set('passwd', passwd)
 				$user.set('reset', undefined)
 
 				return $user.save()
 			})
-			.then($user => $user.toObject())
+			.then($user => {
+				console.log($user, '----')
+				return $user.toObject()
+			})
 			.then(user => tools.toObject(user))
 			.then(user => resolve(user))
 			.catch(err => reject(err))

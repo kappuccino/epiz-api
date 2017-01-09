@@ -44,6 +44,14 @@ const SearchSubscription = new GraphQLObjectType({
 	}
 })
 
+const ActiveSubscription = new GraphQLObjectType({
+	name: 'ActiveSubscription',
+	fields: {
+		total: { type: GraphQLInt }
+	}
+})
+
+
 function getUser(_id){
 	if(!_id) return null
 	const api = require('../../user/user')
@@ -73,5 +81,6 @@ function getEpisode(_id){
 
 module.exports = {
 	Subscription,
-	SearchSubscription
+	SearchSubscription,
+	ActiveSubscription
 }
