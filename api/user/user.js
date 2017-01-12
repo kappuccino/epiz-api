@@ -43,7 +43,7 @@ function getById(_id){
 
 function search(opt){
 
-	var query = model.find().lean()
+	let query = model.find().lean()
 	opt = Object.assign({}, {limit:100, skip:0}, opt)
 
 	// Note: mongoose query are not promises, but they do have .then(). Solution, using an object wrapper
@@ -62,25 +62,21 @@ function search(opt){
 function create(data){
 
 	if(data._id) delete data._id
+	if(!data.login) throw new Error('no login')
+	if(!data.passwd) throw new Error('no passwd')
 
-	return new Promise((resolve, reject) => {
+	if(!data.is_verified)  data.is_verified = false
+	if(!data.verification) data.verification = _genRandom()
 
-		if(!data.login) throw new Error('no login')
-		if(!data.passwd) throw new Error('no passwd')
-
-		exists(data.login)
-			.then(exits => {
-				if(exits) reject(new Error('user exists'))
-			})
-			.then(() => {
-				const $user = new model(data)
-				return $user.save()
-			})
-			.then(user => getById(user._id))
-			.then(user => resolve(user))
-			.catch(err => reject(err))
-
-	})
+	return exists(data.login)
+		.then(u => {
+			if(u) throw new Error('user exists')
+		})
+		.then(() => {
+			const $user = new model(data)
+			return $user.save()
+		})
+		.then(user => getById(user._id))
 
 }
 
@@ -105,6 +101,24 @@ function update(_id, data){
 
 				return $user.save()
 			})
+			.then(user => resolve(tools.toObject(user)))
+			.catch(err => reject(err))
+
+	})
+
+}
+
+function verification(_id, verification){
+
+	return new Promise((resolve, reject) => {
+
+		if(!_id) throw new Error('No _id')
+		_id = new mongoose.Types.ObjectId(_id)
+
+		if(!verification) throw new Error('No verification')
+
+		model.findOneAndUpdate({_id, verification}, {is_verified:true}).lean().exec()
+			.then(() => getById(_id))
 			.then(user => resolve(tools.toObject(user)))
 			.catch(err => reject(err))
 
@@ -145,6 +159,100 @@ function removeBatch(_ids){
 }
 
 
+
+// -- MAIL
+
+function sponsorMail(data){
+
+	let emails = data.emails;
+	if(!emails) throw new Error('no email');
+
+	emails = emails
+		.split('\n')
+		.map(x => x.trim())
+		.filter(x => !!x)
+
+	if(!emails.length) throw new Error('emails list is empty')
+
+	// mandril format
+	const to = emails.map(email => ({
+		email: email, type: "to"
+	}))
+
+	return new Promise((resolve, reject) => {
+
+		const mandrill = require('mandrill-api')
+		const client = new mandrill.Mandrill(process.env.MANDRILL_KEY)
+
+		const message = {
+			to,
+			subject: 'Découvrez Epiz',
+			from_email: 'noreply@epiz.fr',
+			from_name: 'Epiz',
+			headers: {
+				'Reply-To': data.from
+			},
+			text: data.body
+		}
+
+		client.messages.send(
+			{"message": message, "async": false, "ip_pool": '', "send_at": ''},
+			(res) => resolve({sucess: true}),
+			(err) => {
+				// Mandrill returns the error as an object with name and message keys
+				console.error('A mandrill error occurred: ' + err.name + ' - ' + err.message)
+
+				// A mandrill error occurred: Unknown_Subaccount - No subaccount exists with the id 'customer-123'
+				reject(err)
+			}
+		);
+
+	})
+
+}
+
+function createSendMail(data){
+
+	return new Promise((resolve, reject) => {
+
+		const mandrill = require('mandrill-api')
+		const client = new mandrill.Mandrill(process.env.MANDRILL_KEY)
+
+		const message = {
+			to: [{email: data.login, type: 'to'}],
+			from_email: 'noreply@epiz.fr',
+			global_merge_vars: [
+				{name: 'code', 'content': data.verification}
+			]
+		}
+
+		client.messages.sendTemplate({
+				'template_name': 'gribouille-check-email',
+				'template_content': [{
+					'name': 'example name',
+					'content': 'example content'
+				}],
+				'message': message,
+				'async': false,
+				'ip_pool': '',
+				'send_at': ''
+			},
+			(res) => resolve(),
+			(err) => {
+				// Mandrill returns the error as an object with name and message keys
+				console.error('A mandrill error occurred: ' + err.name + ' - ' + err.message)
+
+				// A mandrill error occurred: Unknown_Subaccount - No subaccount exists with the id 'customer-123'
+				reject(err)
+			}
+		)
+
+	})
+
+}
+
+
+
 // -- AUTH
 
 function login(login, passwd){
@@ -167,6 +275,46 @@ function login(login, passwd){
 					})
 				})
 
+			})
+			.then(_id => getById(_id))
+			.then(user => resolve(user))
+			.catch(err => reject(err))
+
+	})
+
+}
+
+function lost(login){
+
+	return new Promise((resolve, reject) => {
+
+		if(!login) throw new Error('no login')
+		const lost = _genRandom()
+
+		model.findOneAndUpdate({login}, {lost}).lean().exec()
+			.then(user => {
+				if(!user) throw new Error('User not found')
+				return user
+			})
+			.then(user => _sendLostCode(user.login, lost))
+			.then(() => resolve({lost}))
+			.catch(err => reject(err))
+
+	})
+
+}
+
+function lostCheck(login, code){
+
+	return new Promise((resolve, reject) => {
+
+		if(!login) throw new Error('no login')
+		if(!code) throw new Error('no code')
+
+		model.findOneAndUpdate({login, lost:code}, {lost:undefined}).lean().exec()
+			.then(user => {
+				if(!user) throw new Error('User not found')
+				return user._id
 			})
 			.then(_id => getById(_id))
 			.then(user => resolve(user))
@@ -270,6 +418,53 @@ function _search(query, opt){
 	return Promise.resolve({query})
 }
 
+function _genRandom(){
+	return Math.round(Math.random() * (99999 - 10000) + 10000)
+}
+
+function _sendLostCode(email, code){
+
+	return new Promise((resolve, reject) => {
+
+		const mandrill = require('mandrill-api')
+		const client = new mandrill.Mandrill(process.env.MANDRILL_KEY)
+
+		const message = {
+			template_name: 'gribouille-lost',
+			to: [{email: email, type: "to"}],
+			subject: 'Votre code de vérification Epiz',
+			from_email: 'noreply@epiz.fr',
+			global_merge_vars: [
+				{name: 'code', 'content': code}
+			]
+		}
+
+		client.messages.sendTemplate({
+				'template_name': 'gribouille-lost',
+				'template_content': [{
+					'name': 'example name',
+					'content': 'example content'
+				}],
+				'message': message,
+				'async': false,
+				'ip_pool': '',
+				'send_at': ''
+			},
+			(res) => resolve(),
+			(err) => {
+				// Mandrill returns the error as an object with name and message keys
+				console.error('A mandrill error occurred: ' + err.name + ' - ' + err.message)
+
+				// A mandrill error occurred: Unknown_Subaccount - No subaccount exists with the id 'customer-123'
+				reject(err)
+			}
+		)
+
+
+
+	})
+
+}
 
 
 
@@ -280,10 +475,16 @@ module.exports = {
 	search,
 	create,
 	update,
+	verification,
 	remove,
 	removeBatch,
 
+	sponsorMail,
+	createSendMail,
+
 	login,
+	lost,
+	lostCheck,
 	prepareReset,
 	resetPassword
 }

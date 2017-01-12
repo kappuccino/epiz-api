@@ -67,7 +67,7 @@ module.exports = function(router){
 			return tools.requestUnauthorized('user_get', req, res, next);
 		}
 
-		user.getById(req.params.id, req.query['auth'])
+		user.getById(req.params.id)
 			.then(data => tools.requestSuccess(data, req, res))
 			.catch(err => tools.requestFail(err, req, res, next))
 	})
@@ -90,6 +90,10 @@ module.exports = function(router){
 		}
 
 		user.create(req.body)
+			.then(data => {
+				if(req.body.send_mail) user.createSendMail(data) // on n'attends pas la fin de cette fonction
+				return data
+			})
 			.then(data => tools.requestSuccess(data, req, res))
 			.catch(err => tools.requestFail(err, req, res, next))
 	})
@@ -114,6 +118,27 @@ module.exports = function(router){
 		}
 
 		user.update(req.params._id, req.body)
+			.then(data => tools.requestSuccess(data, req, res))
+			.catch(err => tools.requestFail(err, req, res, next))
+
+	})
+
+	/**
+	 * @api {post} /user/:id/verification Update the user is_verified field is the verification code match
+	 * @apiName UserVerification
+	 * @apiGroup User
+	 * @apiPermission user_verification
+	 *
+	 * @apiParam {String} id The user id
+	 */
+	router.post('/user/:_id([0-9a-f]{24})/verification', function update(req, res, next){
+
+		// Check Auth
+		if(!tools.checkAuth('user_verification', req)){
+			return tools.requestUnauthorized('user_verification', req, res, next);
+		}
+
+		user.verification(req.params._id, req.body.verification)
 			.then(data => tools.requestSuccess(data, req, res))
 			.catch(err => tools.requestFail(err, req, res, next))
 
@@ -168,6 +193,52 @@ module.exports = function(router){
 
 
 
+// MAIL
+
+	/**
+	 * @api {post} /user/sponsor-mail Send an email to a bunch of friends to become their sponsor
+	 * @apiName UserSponsorMail
+	 * @apiGroup User
+	 * @apiPermission user_sponsor
+	 */
+	router.post('/user/sponsor-mail', function update(req, res, next){
+
+		// Check Auth
+		if(!tools.checkAuth('user_sponsor', req)){
+			return tools.requestUnauthorized('user_sponsor', req, res, next);
+		}
+
+		user.sponsorMail(req.body)
+			.then(data => tools.requestSuccess(data, req, res))
+			.catch(err => tools.requestFail(err, req, res, next))
+
+	})
+
+	/**
+	 * @api {post} /user/:id/verification-mail Send an email to a a user with his verification code
+	 * @apiName UserVerificationCode
+	 * @apiGroup User
+	 * @apiPermission user_verification_code
+	 */
+	router.get('/user/:id([0-9a-f]{24})/send-code', function update(req, res, next){
+
+		// Check Auth
+		if(!tools.checkAuth('user_verification_code', req)){
+			return tools.requestUnauthorized('user_verification_code', req, res, next);
+		}
+
+		user.getById(req.params.id)
+			.then(data => {
+				user.createSendMail(data) // on attends pas la fin de cette fonction
+				return data
+			})
+			.then(data => tools.requestSuccess(data, req, res))
+			.catch(err => tools.requestFail(err, req, res, next))
+
+	})
+
+
+
 // AUTH
 
 	/**
@@ -186,6 +257,45 @@ module.exports = function(router){
 		}
 
 		user.login(req.body.login, req.body.passwd)
+			.then(data => tools.requestSuccess(data, req, res))
+			.catch(err => tools.requestFail(err, req, res, next))
+	})
+
+	/**
+	 * @api {post} /user/lost Send an email to a user with a lost code
+	 * @apiName UserLost
+	 * @apiGroup User
+	 *
+	 * @apiParam (Body) {String} login The login
+	 */
+	router.post('/user/lost', function login(req, res, next){
+
+		// Check Auth
+		if(!tools.checkAuth('user_last', req)){
+			return tools.requestUnauthorized('user_lost', req, res, next);
+		}
+
+		user.lost(req.body.login)
+			.then(data => tools.requestSuccess(data, req, res))
+			.catch(err => tools.requestFail(err, req, res, next))
+	})
+
+	/**
+	 * @api {post} /user/lost-check Check if a lost code is good
+	 * @apiName UserLostCheck
+	 * @apiGroup User
+	 *
+	 * @apiParam (Body) {String} login The login
+	 * @apiParam (Body) {String} code The code
+	 */
+	router.post('/user/lost-check', function login(req, res, next){
+
+		// Check Auth
+		if(!tools.checkAuth('user_lost', req)){
+			return tools.requestUnauthorized('user_lost', req, res, next)
+		}
+
+		user.lostCheck(req.body.login, req.body.code)
 			.then(data => tools.requestSuccess(data, req, res))
 			.catch(err => tools.requestFail(err, req, res, next))
 	})

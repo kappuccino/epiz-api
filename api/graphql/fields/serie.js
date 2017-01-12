@@ -19,6 +19,10 @@ const Serie = new GraphQLObjectType({
 			storyCount: { type: GraphQLInt, resolve: (_) => storyCount(_._id)},
 			episodeCount: { type: GraphQLInt, resolve: (_) => episodeCount(_._id)},
 
+			excerpt: { type: GraphQLString },
+			textColor: { type: GraphQLString },
+			backgroundColor: { type: GraphQLString },
+
 			stories: {
 				type: new GraphQLList(Story),
 				resolve: (_, args, root, ast) => storiesFromSerie(_._id)

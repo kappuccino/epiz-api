@@ -7,6 +7,7 @@ const schema = mongoose.Schema({
 	passwd: String,
 	auth: mongoose.Schema.Types.Mixed, // Liste d'autorisation (utilisé par l'API — userGet(1|0) userDelete(1|0) ... )
 	reset: {type: mongoose.Schema.ObjectId},
+	lost: String,
 
 	firstName: String,
 	lastName: String,

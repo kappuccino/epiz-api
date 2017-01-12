@@ -66,7 +66,7 @@ function search(opt){
 
 	if(opt.from || opt.to) filters.date = {}
 	if(opt.from) filters.date['$gte'] = new Date(opt.from)
-	if(opt.to)   filters.date['$lte'] = new Date(opt.to)
+	if(opt.to)   filters.date['$lte'] = new Date(opt.to+' 23:59:59')
 
 	const query = new Promise((resolve, reject) => {
 		model
@@ -74,6 +74,7 @@ function search(opt){
 			.unwind(unwind)
 			.project(project)
 			.match(filters)
+			.sort({_id: -1})
 			.skip(skip)
 			.limit(limit)
 			.exec((err, res) => {
@@ -112,6 +113,62 @@ function stats(args){
 			return {
 				month: values[0],
 				year: values[1]
+			}
+		})
+
+}
+
+function timeStats(options){
+
+	return new Promise((resolve, reject) => {
+
+		const options = {
+
+			map: function(){
+				var transactions = this.transactions
+				if(!transactions.length) return;
+
+				transactions.forEach(function(transaction){
+					var d = new Date(transaction.date);
+					var day = ("0" + d.getDate()).slice(-2);
+					var month = ("0" + d.getMonth()+1).slice(-2);
+					var date = d.getFullYear() +'-'+ month +'-'+ day;
+
+					emit({
+						date: date,
+						duration: transaction.duration
+					}, 1)
+				})
+
+			},
+
+			reduce: function(k, vals){
+				return vals.length
+			}
+		}
+
+		/*const query = {}
+		const starts = options.starts
+		if(starts){}*/
+
+		model.mapReduce(options, (err, results) => {
+			if(err) return reject(err)
+			resolve(results)
+		})
+
+
+	})
+
+}
+
+function exportData(opt){
+
+	return search(opt)
+		.then(results => _exportCSV(results.data))
+		.then(csv => _csvToMail(opt, csv))
+		.then(() => {
+			return {
+				'export': true
 			}
 		})
 
@@ -319,11 +376,90 @@ function _stats(duration, opt){
 
 }
 
+function _exportCSV(data){
+
+	return new Promise((resolve, reject) => {
+
+		const json2csv = require('json2csv')
+		const moment = require('moment')
+
+		const newData = data.map(datum => {
+			datum._id = datum._id.toString()
+			datum.date = moment(datum.date).format('YYYY-MM-DD HH:mm:ss')
+
+			datum.plateform = datum.plateform || ''
+			datum.method = datum.method || ''
+
+			datum.is_free = datum.is_free ? 'oui' : 'non'
+
+			return datum
+		})
+
+		const options = {
+			data: newData,
+			fields:     ['_id', 'date', 'plateform',  'ref', 'amount',  'duration', 'is_free', 'method'],
+			fieldNames: ['#',  'date',  'plateforme', 'ref', 'montant', 'duree',    'gratuit', 'moyen_paiement'],
+			del: '\t',
+			quotes: ''
+		};
+
+		json2csv(options, (err, csv) => {
+			if(err) return reject(err);
+			csv = csv.replace(/\\n/m, '\n')
+			resolve(csv);
+		});
+
+
+	})
+
+}
+
+function _csvToMail(opt, csv){
+
+	return new Promise((resolve, reject) => {
+
+		const mandrill = require('mandrill-api')
+		const client = new mandrill.Mandrill(process.env.MANDRILL_KEY)
+
+		const message = {
+			to: [{email: opt.email, type: "to"}],
+			subject: 'Export comptable',
+			from_email: 'noreply@epiz.fr',
+			text: 'Export en pièce jointe',
+			attachments: [{
+				type: 'text/csv',
+				name: 'export.csv',
+				content: new Buffer(csv).toString('base64')
+			}]
+		}
+
+		client.messages.send(
+			{"message": message, "async": false, "ip_pool": '', "send_at": ''},
+			(res) => resolve(),
+			(err) => {
+				// Mandrill returns the error as an object with name and message keys
+				console.error('A mandrill error occurred: ' + err.name + ' - ' + err.message)
+
+				// A mandrill error occurred: Unknown_Subaccount - No subaccount exists with the id 'customer-123'
+				reject(err)
+			}
+		);
+
+
+
+	})
+
+}
+
+
+
 
 module.exports = {
 	getById,
 	search,
+	exportData,
 	stats,
+	timeStats
 	//create,
 	//update,
 	//extend,

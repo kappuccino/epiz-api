@@ -4,8 +4,6 @@ const tools = require('../tools')
 module.exports = function(router){
 	
 
-// SEARCH
-
 	/**
 	 * @api {post} /transaction Search for transactions
 	 * @apiName TransactionSearch
@@ -28,6 +26,27 @@ module.exports = function(router){
 	})
 
 	/**
+	 * @api {post} /transaction/export Export transactions
+	 * @apiName TransactionExport
+	 * @apiGroup Transaction
+	 * @apiPermission transaction_export
+	 *
+	 * @apiParam (Body) {String} ...
+	 */
+	router.post('/transaction/export', function search(req, res, next){
+
+		// Check Auth
+		if(!tools.checkAuth('transaction_export', req)){
+			return tools.requestUnauthorized('transaction_export', req, res, next);
+		}
+
+		transaction.exportData(req.body)
+			.then(data => tools.requestSuccess(data, req, res))
+			.catch(err => tools.requestFail(err, req, res, next))
+
+	})
+
+	/**
 	 * @api {get} /transaction/:id Get a transaction by id
 	 * @apiName TransactionGetbyid
 	 * @apiGroup Transaction
@@ -43,6 +62,24 @@ module.exports = function(router){
 		}
 
 		transaction.getById(req.params.id)
+			.then(data => tools.requestSuccess(data, req, res))
+			.catch(err => tools.requestFail(err, req, res, next))
+	})
+
+	/**
+	 * @api {post} /transaction/timestats Get some subscription stats base on date
+	 * @apiName TransactionTimeStats
+	 * @apiGroup Transaction
+	 * @apiPermission transaction_timestats
+	 */
+	router.post('/transaction/timestats', function getById(req, res, next){
+
+		// Check Auth
+		if(!tools.checkAuth('transaction_timestats', req)){
+			return tools.requestUnauthorized('transaction_timestats', req, res, next);
+		}
+
+		transaction.timeStats(req.body)
 			.then(data => tools.requestSuccess(data, req, res))
 			.catch(err => tools.requestFail(err, req, res, next))
 	})

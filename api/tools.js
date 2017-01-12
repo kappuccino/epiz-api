@@ -104,7 +104,7 @@ function requestSuccess(data, req, res){
  * @param req
  * @param res
  */
-function requestNotFound(req, res, next){
+function requestNotFound(req, res){
 
 	res.status(404);
 
@@ -130,7 +130,7 @@ function requestNotFound(req, res, next){
  */
 function requestFail(err, req, res, next){
 
-	var code = err.code || 200
+	const code = err.code || 200
 
 	if(code == 404) return requestNotFound(req, res, next)
 

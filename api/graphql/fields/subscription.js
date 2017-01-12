@@ -23,6 +23,8 @@ const Subscription = new GraphQLObjectType({
 
 			transactions : { type: new GraphQLList(Transaction) },
 
+			reader: { type: GraphQLString },
+
 			user: { type: User, resolve: (_, args, root, ast) => getUser(_._user) },
 			serie: { type: Serie, resolve: (_, args, root, ast) => getSerie(_._serie) },
 			story: { type: Story, resolve: (_, args, root, ast) => getStory(_._story) },
