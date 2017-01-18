@@ -16,7 +16,9 @@ const schema = mongoose.Schema({
 	_serie: {type: mongoose.Schema.ObjectId, ref: 'Serie'},
 	_story: {type: mongoose.Schema.ObjectId, ref: 'Story'},
 	_episode: {type: mongoose.Schema.ObjectId, ref: 'Episode'},
-	_mailCursor: {type: mongoose.Schema.ObjectId, ref: 'Episode'}, // dernier épisode envoyé par mail
+
+	forwardCursor: String, // date du dernier forward
+	mailCursor: String, // date du dernier envois par mail
 
 	reader: String, // destinataire pour l'envois des emails
 	transactions: [Transaction],
@@ -25,6 +27,8 @@ const schema = mongoose.Schema({
 	updated: Date,
 	starts: Date,
 	ends: Date,
+
+	reading: {type: mongoose.Schema.Types.Mixed}
 
 }, {
 	collection: 'subscription'

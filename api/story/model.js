@@ -6,7 +6,7 @@ const schema = mongoose.Schema({
 	name: String,
 	index: Number,
 	active: Boolean,
-	free: Boolean,
+	is_free: Boolean,
 
 	excerpt: String,
 
@@ -20,6 +20,22 @@ const schema = mongoose.Schema({
 schema.pre('save', function(next){
 	this.updated = new Date()
 	if(this.isNew && !this.created) this.created = new Date()
+
+	// Quand on met à jour une Story, on met à jour les épisodes en conséquences (is_free = comme la story)
+	if(!this.isNew){
+		const is_free = this.get('is_free')
+
+		const episode = require('../episode/model')
+		episode
+			.update(
+				{ _story: this.get('_id') },
+				{ $set: {is_free} },
+				{ multi: true }
+			)
+			.lean()
+			.exec()
+	}
+
 	next()
 })
 

@@ -5,7 +5,9 @@ function start(cb){
 	const express = require('express')
 	app = express()
 
-	app.set('port', process.env.PORT)
+	app.disable('x-powered-by')
+
+	app.set('port', process.env.PORT_HTTPS)
 	app.set('env', process.env.NODE_ENV == 'production' ? 'production' : 'development')
 
 	// Gzip
@@ -54,6 +56,7 @@ function start(cb){
 	require('./api/subscription/routes')(app)
 	require('./api/transaction/routes')(app)
 	require('./api/plan/routes')(app)
+	require('./api/cron/routes')(app)
 
 	// GraphQL
 	require('./api/graphql/routes')(app);
@@ -67,8 +70,30 @@ function start(cb){
 	// mount the router on the app
 	app.use('/', router)
 
+	app.listen = function(port, altPort, cb){
+
+		// HTTP (only for dev)
+		if(app.get('env') === 'development'){
+			const http = require('http')
+			const alt = http.createServer(this)
+			alt.listen.apply(alt, [altPort]);
+		}
+
+		// HTTPS
+		const https = require('https')
+		const fs = require('fs')
+
+		const options = {
+			key: fs.readFileSync(process.env.EPIZ_SSL_KEY),
+			cert: fs.readFileSync(process.env.EPIZ_SSL_CERT)
+		}
+
+		const server = https.createServer(options, this)
+		return server.listen.apply(server, [port, cb]);
+	};
+
 	// Let's go
-	server = app.listen(app.get('port'), function(){
+	server = app.listen(app.get('port'), process.env.PORT_HTTP, function(){
 		cb(null, `express listening on port ${app.get('port')}`)
 	})
 

@@ -1,6 +1,6 @@
 const {
 	GraphQLObjectType,
-	GraphQLString, GraphQLInt, GraphQLList
+	GraphQLString, GraphQLInt, GraphQLList, GraphQLBoolean
 } = require('graphql')
 
 const { SearchSerie, Serie } = require('./fields/serie')
@@ -17,7 +17,8 @@ const searchSerie = {
 	args: {
 		limit: { type: GraphQLInt },
 		skip: { type: GraphQLInt },
-		name: { type: GraphQLString }
+		name: { type: GraphQLString },
+		_user: { type: GraphQLString }
 	},
 	resolve: (obj, args, root, ast) => {
 		const serieAPI = require('../serie/serie')
@@ -90,7 +91,7 @@ const searchEpisode = {
 		skip: { type: GraphQLInt },
 		name: { type: GraphQLString },
 		_serie: { type: GraphQLString },
-		_story: { type: GraphQLString },
+		_story: { type: GraphQLString }
 	},
 	resolve: (obj, args, root, ast) => {
 		const api = require('../episode/episode')
@@ -145,7 +146,8 @@ const searchSubscription = {
 		skip: { type: GraphQLInt },
 		_user: { type: GraphQLString },
 		starts: { type: GraphQLString },
-		ends: { type: GraphQLString }
+		ends: { type: GraphQLString },
+		fromUser: { type: GraphQLBoolean }
 	},
 	resolve: (obj, args, root, ast) => {
 		const api = require('../subscription/subscription')

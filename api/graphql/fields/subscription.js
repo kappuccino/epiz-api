@@ -25,9 +25,16 @@ const Subscription = new GraphQLObjectType({
 
 			reader: { type: GraphQLString },
 
+			_user: { type: GraphQLString },
 			user: { type: User, resolve: (_, args, root, ast) => getUser(_._user) },
+
+			_serie: { type: GraphQLString },
 			serie: { type: Serie, resolve: (_, args, root, ast) => getSerie(_._serie) },
+
+			_story: { type: GraphQLString },
 			story: { type: Story, resolve: (_, args, root, ast) => getStory(_._story) },
+
+			_episoe: { type: GraphQLString },
 			episode: { type: Episode, resolve: (_, args, root, ast) => getEpisode(_._episode) },
 
 			created: { type: GraphQLString, resolve: (_, args, root, ast) => dateToISO(_[ast.fieldName]) },

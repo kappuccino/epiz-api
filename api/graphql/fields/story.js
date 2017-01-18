@@ -8,18 +8,29 @@ const Story = new GraphQLObjectType({
 	name: 'Story',
 	fields: ()  => {
 		const { Serie } = require('./serie')
+		const { Episode } = require('./episode')
 
 		return {
 			_id: { type: GraphQLString },
 			name: { type: GraphQLString },
+			excerpt: { type: GraphQLString },
 			index: { type: GraphQLInt },
 			active: { type: GraphQLBoolean },
-			free: { type: GraphQLBoolean },
+			is_free: { type: GraphQLBoolean },
 
 			episodeCount: { type: GraphQLInt, resolve: (_) => episodeCount(_._id)},
 
 			_serie: { type: GraphQLString },
-			serie: { type: Serie, resolve: (_, args, root, ast) => getSerie(_._serie) }
+			serie: { type: Serie, resolve: (_, args, root, ast) => getSerie(_._serie) },
+
+			episodes: {
+				type: new GraphQLList(Episode),
+				args: {
+					fromUser: { type: GraphQLBoolean },
+					_user: { type: GraphQLString }
+				},
+				resolve: (_, args, root, ast) => episodesFromStory(_._id, args)
+			}
 		}
 	}
 })
@@ -44,11 +55,19 @@ function episodeCount(_story){
 		.catch(err => console.error(err))
 }
 
-
 function getSerie(_serie){
 	const api = require('../../serie/serie')
 	return api.getById(_serie)
 }
+
+function episodesFromStory(_story, args={}){
+	const api = require('../../episode/episode')
+
+	return api.search(Object.assign({}, {_story}, args))
+		.then(res => res.data)
+		.catch(err => console.error(err))
+}
+
 
 
 module.exports = {

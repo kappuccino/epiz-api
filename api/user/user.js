@@ -1,8 +1,12 @@
 const mongoose = require('mongoose')
 
+const event = require('../event')
 const tools = require('../tools')
 const logger = require('../logger')
 const model = require('./model')
+
+
+
 
 
 // -- USER
@@ -13,7 +17,7 @@ function exists(login){
 
 		model.findOne({login}).lean().exec((err, doc) => {
 			if(err) return reject(err)
-			resolve(doc ? true : false)
+			resolve(!!doc)
 		})
 
 	})
@@ -73,10 +77,22 @@ function create(data){
 			if(u) throw new Error('user exists')
 		})
 		.then(() => {
+			const code = data.sponsorCode;
+			if(!code) return
+
+			return model.findOne({sponsorCode:code})
+		})
+		.then(sponsor => {
+			if(sponsor) data._sponsor = sponsor._id
+		})
+		.then(() => {
 			const $user = new model(data)
 			return $user.save()
 		})
-		.then(user => getById(user._id))
+		.then(user => {
+			event.emit('userCreated', user)
+			return getById(user._id)
+		})
 
 }
 
@@ -101,7 +117,10 @@ function update(_id, data){
 
 				return $user.save()
 			})
-			.then(user => resolve(tools.toObject(user)))
+			.then(user => {
+				event.emit('userUpdated', user)
+				return resolve(tools.toObject(user))
+			})
 			.catch(err => reject(err))
 
 	})
@@ -135,7 +154,10 @@ function remove(_id){
 
 		model.findOneAndRemove({_id}).lean().exec()
 			.then(user => tools.toObject(user))
-			.then(user => resolve(user))
+			.then(user => {
+				event.emit('userRemoved', user)
+				return resolve(user)
+			})
 			.catch(err => reject(err))
 
 	})
@@ -251,6 +273,34 @@ function createSendMail(data){
 
 }
 
+function mailchimpUpsert(user, merge_fields={}){
+
+	// Do nothing in silence
+	if(!user.login) return Promise.resolve(false)
+
+	const md5 = require('md5')
+	const Mailchimp = require('mailchimp-api-v3')
+	const mailchimp = new Mailchimp(process.env.MAILCHIMP_APIKEY)
+
+	return new Promise((resolve, reject) => {
+
+		mailchimp.request({
+			method : 'put',
+			path : `/lists/${process.env.MAILCHIMP_LISTID}/members/${md5(user.login)}`,
+			body : {
+				email_address: user.login,
+				status: 'subscribed',
+				status_if_new: 'subscribed',
+				merge_fields
+			}
+		}, (err, res) => {
+			if(err) return reject(err)
+			resolve(res)
+		})
+
+	})
+
+}
 
 
 // -- AUTH
@@ -418,8 +468,8 @@ function _search(query, opt){
 	return Promise.resolve({query})
 }
 
-function _genRandom(){
-	return Math.round(Math.random() * (99999 - 10000) + 10000)
+function _genRandom(min=10000, max=99999){
+	return Math.round(Math.random() * (max - min) + min)
 }
 
 function _sendLostCode(email, code){
@@ -481,6 +531,7 @@ module.exports = {
 
 	sponsorMail,
 	createSendMail,
+	mailchimpUpsert,
 
 	login,
 	lost,

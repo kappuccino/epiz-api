@@ -1,6 +1,9 @@
 const subscription = require('./subscription')
 const tools = require('../tools')
 
+subscription.removeForUser('58774768325714ee2fe7e2d3')
+
+
 module.exports = function(router){
 	
 
@@ -46,6 +49,27 @@ module.exports = function(router){
 			.then(data => tools.requestSuccess(data, req, res))
 			.catch(err => tools.requestFail(err, req, res, next))
 	})
+
+	/**
+	 * @api {get} /subscription/:id/email Send an episode by email
+	 * @apiName SubscriptionMail
+	 * @apiGroup Subscription
+	 * @apiPermission subscription_mail
+	 *
+	 * @apiParam {String} id The subscription ID
+	 */
+	router.get('/subscription/:id([0-9a-f]{24})/email', function getById(req, res, next){
+
+		// Check Auth
+		if(!tools.checkAuth('subscription_email', req)){
+			return tools.requestUnauthorized('subscription_email', req, res, next);
+		}
+
+		subscription.sendEpisodeByEmail(req.params.id, req.query.bypass)
+			.then(data => tools.requestSuccess(data, req, res))
+			.catch(err => tools.requestFail(err, req, res, next))
+	})
+
 
 
 // CREATE
@@ -94,7 +118,7 @@ module.exports = function(router){
 	})
 
 	/**
-	 * @api {post} /subscription/:id/extend Extend a subscription subscription
+	 * @api {post} /subscription/:id/extend Extend a subscription
 	 * @apiName SubscriptionExtend
 	 * @apiGroup Subscription
 	 * @apiPermission subscription_extend
@@ -109,6 +133,27 @@ module.exports = function(router){
 		}
 
 		subscription.extend(req.params._id, req.body)
+			.then(data => tools.requestSuccess(data, req, res))
+			.catch(err => tools.requestFail(err, req, res, next))
+
+	})
+
+	/**
+	 * @api {post} /subscription/:id/forward Forward a subscription
+	 * @apiName SubscriptionExtend
+	 * @apiGroup Subscription
+	 * @apiPermission subscription_extend
+	 *
+	 * @apiParam {String} id The subscription id
+	 */
+	router.get('/subscription/:_id([0-9a-f]{24})/forward', function update(req, res, next){
+
+		// Check Auth
+		if(!tools.checkAuth('subscription_forward', req)){
+			return tools.requestUnauthorized('subscription_forward', req, res, next);
+		}
+
+		subscription.forward(req.params._id)
 			.then(data => tools.requestSuccess(data, req, res))
 			.catch(err => tools.requestFail(err, req, res, next))
 
@@ -138,6 +183,7 @@ module.exports = function(router){
 			.catch(err => tools.requestFail(err, req, res, next))
 
 	})
-	
+
+
 
 }

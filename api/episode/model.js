@@ -7,6 +7,7 @@ const schema = mongoose.Schema({
 	name: String,
 	index: Number,
 	content: String,
+	is_free: Boolean,
 
 	created: Date,
 	updated: Date

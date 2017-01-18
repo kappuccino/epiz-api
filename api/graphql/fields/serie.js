@@ -25,7 +25,10 @@ const Serie = new GraphQLObjectType({
 
 			stories: {
 				type: new GraphQLList(Story),
-				resolve: (_, args, root, ast) => storiesFromSerie(_._id)
+				args: {
+					_user: { type: GraphQLString }
+				},
+				resolve: (_, args, root, ast) => storiesFromSerie(_._id, args)
 			}
 
 		}
@@ -60,10 +63,10 @@ function episodeCount(_serie){
 		.catch(err => console.error(err))
 }
 
-function storiesFromSerie(_serie) {
+function storiesFromSerie(_serie, args={}){
 	const api = require('../../story/story')
 
-	return api.search({_serie})
+	return api.search(Object.assign({}, {_serie}, args))
 		.then(res => res.data)
 		.catch(err => console.error(err))
 }

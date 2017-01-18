@@ -23,7 +23,8 @@ function dateToISO(d){
 
 	// https://forums.meteor.com/t/how-to-deal-with-user-input-of-dates-using-isodate-stored-to-mongo-db/6603/6
 	// ?
-	const date = moment.utc(timestamp).format('YYYY-MM-DD HH:mm:ss')
+	//const date = moment.utc(timestamp).format('YYYY-MM-DD HH:mm:ss')
+	const date = moment.utc(timestamp).toISOString()
 
 	//console.log(date)
 	return date

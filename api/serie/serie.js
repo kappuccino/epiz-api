@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 
+const event = require('../event')
 const tools = require('../tools')
 const logger = require('../logger')
 const model = require('./model')
@@ -53,7 +54,10 @@ function create(data){
 
 		return $serie.save()
 			.then(serie => getById(serie._id))
-			.then(serie => resolve(serie))
+			.then(serie => {
+				event.emit('serieCreated', serie)
+				return resolve(serie)
+			})
 			.catch(err => reject(err))
 
 	})
@@ -79,7 +83,12 @@ function update(_id, data){
 
 				return $serie.save()
 			})
-			.then(serie => resolve(tools.toObject(serie)))
+			.then($serie => _reading($serie))
+			.then($serie => $serie.toObject())
+			.then(serie => {
+				event.emit('serieUpdated', serie)
+				return resolve(tools.toObject(serie))
+			})
 			.catch(err => reject(err))
 
 	})
@@ -95,8 +104,37 @@ function remove(_id){
 
 		model.findOneAndRemove({_id}).lean().exec()
 			.then(serie => tools.toObject(serie))
-			.then(serie => resolve(serie))
+			.then(serie => {
+				event.emit('serieRemoved', serie)
+				return resolve(serie)
+			})
 			.catch(err => reject(err))
+
+	})
+
+}
+
+function generateAllReading(){
+
+	const async = require('async')
+
+	return new Promise((resolve, reject) => {
+
+		model.find().exec()
+			.then($series => {
+				if(!$series.length) return false
+
+				async.eachLimit(
+					$series, 10,
+					($serie, cb) => {
+						_reading($serie)
+							.then(() => cb())
+							.catch(err => cb(err))
+					},
+					(err) => reject(err)
+				)
+
+			})
 
 	})
 
@@ -106,9 +144,70 @@ function remove(_id){
 
 //-- private fn()
 
+function _reading($serie){
+
+	const _id = $serie.get('_id').toString()
+	if(!_id) return Promise.resolve($serie)
+
+	const storyApi = require('../story/story')
+	const episodeApi = require('../episode/episode')
+
+	let stories, episodes
+
+	return Promise.all([
+		storyApi.search({_serie: _id, noLimit: true}),
+		episodeApi.search({_serie: _id, noLimit: true})
+	])
+
+		// On recupère toute les histoires et les épisodes de la série
+		.then(([story, episode]) => {
+
+			let final = []
+
+			const episodes = episode.data
+				.sort((a, b) => a.index > b.index)
+				.map(ep => ({
+					_episode: new mongoose.Types.ObjectId(ep._id),
+					_story: new mongoose.Types.ObjectId(ep._story),
+					indexEpisode: ep.index
+				}))
+				.reduce((acc, next) => {
+					const _story = next._story
+					if(!acc[_story]) acc[_story] = []
+					acc[_story].push(next)
+
+					return acc
+				}, [])
+
+			// On fait un gros tri pour avoir une liste ordonnée des épisodes
+
+			story.data
+				.sort((a, b) => a.index > b.index)
+				.forEach(story => {
+					const ep = (episodes[story._id] || [])
+						.map(e => {
+							e.indexStory = story.index
+							return e
+						})
+
+					final = [...final, ...ep]
+				})
+
+			return final;
+		})
+
+		// Save
+		.then(reading => {
+			logger.debug(`Update serie reading ${_id} --> ${reading.length} episodes`)
+			return model.findOneAndUpdate({_id: $serie._id}, {reading}, {new:true}).exec()
+		})
+
+}
+
 function _search(query, opt){
 
-	var pattern
+	let async = false
+	let pattern
 
 	// Name = (firstName OR lastName)
 	if(!!opt.name){
@@ -127,10 +226,27 @@ function _search(query, opt){
 
 	query = tools.sanitizeSearch(query, opt)
 
+	// ASYNC
+	if(!!opt._user){
+		async = _search_async(query, opt)
+	}
+
 	// Note, mongoose query do have .then() function... using a dumb wrap as a workaround
-	return Promise.resolve({query})
+	return async || Promise.resolve({query})
 }
 
+function _search_async(query, opt){
+
+	new Promise((resolve, reject) => {
+
+		// pour le moment on renvois jute la réponse
+		// on se servira plus tard de cette fonction pour gérer les cas async qui changent la query principal
+		resolve({query})
+
+	})
+
+
+}
 
 
 
@@ -140,5 +256,6 @@ module.exports = {
 	search,
 	create,
 	update,
-	remove
+	remove,
+	generateAllReading
 }

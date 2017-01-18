@@ -292,7 +292,7 @@ function exportData(opt){
 
 function _search(query, opt){
 
-	;['_serie', '_story', '_episode', '_user', '_mailCursor'].forEach(f => {
+	;['_serie', '_story', '_episode', '_user'].forEach(f => {
 		if(!opt[f]) return;
 		const val =  new mongoose.Types.ObjectId(opt[f])
 		query.where(f).eq(val)

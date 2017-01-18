@@ -17,7 +17,10 @@ const schema = mongoose.Schema({
 	_poster: {type: mongoose.Schema.ObjectId, ref: 'Media'},
 
 	created: Date,
-	updated: Date
+	updated: Date,
+
+	reading: {type: mongoose.Schema.Types.Mixed}
+
 }, {
 	collection: 'serie'
 })
