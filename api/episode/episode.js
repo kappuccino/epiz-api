@@ -248,8 +248,7 @@ function _search_async_user(query, opt){
 				return acc
 			}, [])
 
-			tools.trace('EPISODES', episodes)
-
+			//tools.trace('EPISODES', episodes)
 
 			query.where('_id').in(episodes)
 			return {query}

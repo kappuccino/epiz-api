@@ -118,11 +118,18 @@ function stats(args){
 
 }
 
-function timeStats(options){
+function timeStats(args){
 
 	return new Promise((resolve, reject) => {
 
+		const query = {}
+		if(args.starts || args.ends) query['transactions.date'] = {}
+		if(args.starts) query['transactions.date']['$gte'] = new Date(args.starts)
+		if(args.ends)   query['transactions.date']['$lte'] = new Date(args.ends)
+
 		const options = {
+
+			query,
 
 			map: function(){
 				var transactions = this.transactions
@@ -146,10 +153,6 @@ function timeStats(options){
 				return vals.length
 			}
 		}
-
-		/*const query = {}
-		const starts = options.starts
-		if(starts){}*/
 
 		model.mapReduce(options, (err, results) => {
 			if(err) return reject(err)

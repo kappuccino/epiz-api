@@ -240,7 +240,7 @@ function active(){
 
 	return new Promise((resolve, reject) => {
 
-		model.find({ends: {$lt: new Date()} }).count().exec((err, total) => {
+		model.find({ends: {$gt: new Date()} }).count().exec((err, total) => {
 			if(err) return reject(err)
 			resolve({total})
 		})
@@ -382,8 +382,6 @@ function _search(query, opt){
 		const ends = new Date(opt.ends)
 		if(ends.getTime) query.where('ends').lte(ends)
 	}
-
-	tools.trace(query._conditions)
 
 	query = tools.sanitizeSearch(query, opt)
 
