@@ -139,14 +139,14 @@ module.exports = function(router){
 	})
 
 	/**
-	 * @api {post} /subscription/:id/forward Forward a subscription
-	 * @apiName SubscriptionExtend
+	 * @api {get} /subscription/:id/forward Forward a subscription
+	 * @apiName SubscriptionForward
 	 * @apiGroup Subscription
 	 * @apiPermission subscription_extend
 	 *
 	 * @apiParam {String} id The subscription id
 	 */
-	router.get('/subscription/:_id([0-9a-f]{24})/forward', function update(req, res, next){
+	router.get('/subscription/forward', function update(req, res, next){
 
 		// Check Auth
 		if(!tools.checkAuth('subscription_forward', req)){
@@ -154,6 +154,27 @@ module.exports = function(router){
 		}
 
 		subscription.forward(req.params._id)
+			.then(data => tools.requestSuccess(data, req, res))
+			.catch(err => tools.requestFail(err, req, res, next))
+
+	})
+
+	/**
+	 * @api {post} /subscription/:id/sync Attach _user to All subscription from a list of transaction ref
+	 * @apiName SubscriptionSync
+	 * @apiGroup Subscription
+	 * @apiPermission subscription_sync
+	 *
+	 * @apiParam {String} id The subscription id
+	 */
+	router.post('/subscription/sync', function update(req, res, next){
+
+		// Check Auth
+		if(!tools.checkAuth('subscription_sync', req)){
+			return tools.requestUnauthorized('subscription_sync', req, res, next);
+		}
+
+		subscription.sync(req.body._user, req.body.refs)
 			.then(data => tools.requestSuccess(data, req, res))
 			.catch(err => tools.requestFail(err, req, res, next))
 

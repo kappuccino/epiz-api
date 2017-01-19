@@ -64,6 +64,7 @@ function episodeCount(_serie){
 }
 
 function storiesFromSerie(_serie, args={}){
+
 	const api = require('../../story/story')
 
 	return api.search(Object.assign({}, {_serie}, args))

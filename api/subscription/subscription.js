@@ -78,10 +78,12 @@ function create(data){
 
 		if(!data._serie) throw new Error('no _serie')
 
-		const duration = parseInt(data.duration)
+		const duration = _duration(data.duration)
 		if(isNaN(Math.floor(duration)) || duration <= 0) throw new Error('duration is not valid')
 
 		// Consolidate (find first Story + first Episode)
+
+		console.log(JSON.stringify(data, null, 2))
 
 		return _firstStoryAndEpisode(data._serie, data._story, data._episode)
 			.then(first => {
@@ -91,6 +93,9 @@ function create(data){
 
 				if(!first.episode) throw new Error('no _episode')
 				data._episode = first.episode
+
+				// Maybe the user could be empty => mongoose yale at use because of the mongoID
+				if(!data._user) delete data._user
 
 				const $subscription = new model(data)
 
@@ -103,6 +108,10 @@ function create(data){
 					const transaction = _transaction(duration, data.transaction)
 					$subscription.set('transactions', [transaction])
 				}
+
+				console.log('#'.repeat(50))
+				console.log(JSON.stringify($subscription.toObject(), null, 2))
+				console.log('#'.repeat(50))
 
 				// On sauve
 				return $subscription.save()
@@ -159,7 +168,7 @@ function extend(_id, data){
 		if(!_id) throw new Error('No _id')
 		_id = new mongoose.Types.ObjectId(_id)
 
-		const duration = parseInt(data.duration)
+		const duration = _duration(data.duration)
 		if(isNaN(Math.floor(duration)) || duration <= 0) throw new Error('duration is not valid')
 
 		getById(_id)
@@ -171,12 +180,15 @@ function extend(_id, data){
 				if(ends.isBefore(new Date())) ends = moment()
 				ends = ends.add(duration, 'days').toDate()
 
-				const transaction = _transaction(duration, data)
-
-				console.log('*'.repeat(100))
-				console.log(transaction)
+				/*console.log('*'.repeat(100))
 				console.log(data)
-				console.log('*'.repeat(100))
+				console.log('*'.repeat(100))*/
+
+				const transaction = _transaction(duration, data.transaction)
+
+				/*console.log('*'.repeat(100))
+				console.log(transaction)
+				console.log('*'.repeat(100))*/
 
 				transaction.type = 'extend'
 
@@ -188,6 +200,31 @@ function extend(_id, data){
 			})
 			.then(subscription => resolve(tools.toObject(subscription)))
 			.catch(err => reject(err))
+	})
+
+}
+
+function sync(_user, refs){
+
+	return new Promise((resolve, reject) => {
+
+		if(!_user) throw new Error('No user')
+		_user = new mongoose.Types.ObjectId(_user)
+
+		if(!refs || !refs.length) throw new Error('Refs is null or empty')
+
+		model.update(
+			{'transactions.ref': {$in: refs}},
+			{$set: {_user}},
+			{multi: true},
+			(err, raw) => {
+				if(err) return reject(err)
+
+				resolve({
+					count: raw.nModified
+				})
+			}
+		)
 	})
 
 }
@@ -346,6 +383,13 @@ function sendEpisodeByEmail(_id, bypass=false){
 
 //-- private fn()
 
+function _duration(time){
+	if(time == 'oneMonth_ns') return 28
+	if(time == 'oneYear_ns') return 365
+
+	return parseInt(time)
+}
+
 function _search(query, opt){
 
 	(['_serie', '_story', '_episode', '_user'].forEach(f => {
@@ -403,12 +447,27 @@ function _transaction(duration, data={}){
 		duration,
 		date: new Date(),
 		type: data.type || 'create',
-		is_free: data.is_free !== undefined ? data.is_free : false
+		is_free: data.is_free !== undefined ? data.is_free : false,
+		amount: _amount(data.amount)
 	})
 
 	if(transaction.is_free) transaction.amount = 0
 
+	/*console.log('*'.repeat(50))
+	console.log(JSON.stringify(transaction, null, 2))
+	console.log('*'.repeat(50))*/
+
 	return transaction
+}
+
+function _amount(amount){
+	const float = parseFloat(amount)
+	if(!isNaN(float)) return float
+
+	const currency = parseFloat(amount.replace(',', '.').substr(1))
+	if(!isNaN(currency)) return currency
+
+	return parseFloat(amount)
 }
 
 function _firstStoryAndEpisode(serie, story=null, episode=null){
@@ -605,6 +664,7 @@ module.exports = {
 	create,
 	update,
 	extend,
+	sync,
 	remove,
 	removeForUser,
 	active,

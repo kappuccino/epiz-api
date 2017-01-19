@@ -84,7 +84,7 @@ function search(opt){
 	return _search(query, opt)
 		.then(q => {
 			query = q.query
-			//tools.trace(query._conditions)
+			tools.trace(query._conditions)
 
 			return Promise.all([tools.queryResult(query), tools.queryTotal(query)])
 		})
@@ -235,7 +235,10 @@ function _search_async_user(query, opt){
 
 			// Filter pour limiter les abonnements à la série
 			subs = subs.filter(sub => sub._serie == opt._serie)
-			if(!subs.length) return {query}
+			if(!subs.length){
+				query.where('_id').eq('000000000000000000000000') // Force an empty result
+				return {query}
+			}
 
 			// Additionner toute les histoires couvertes par les abonnements
 			let stories = []
@@ -244,7 +247,10 @@ function _search_async_user(query, opt){
 				const _ids = sub.reading.map(r => r._story)
 				stories = [...stories, ..._ids]
 			})
-			if(!stories.length) return {query}
+			if(!stories.length){
+				query.where('_id').eq('000000000000000000000000') // Force an empty result
+				return {query}
+			}
 
 			// Supprimer les doublons
 			stories = stories.reduce((acc, next) => {
