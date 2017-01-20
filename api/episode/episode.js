@@ -206,9 +206,10 @@ function _search_async_user(query, opt){
 	//logger.debug('_search_async_user()', opt)
 
 	const _user = opt._user
+	const transactions = opt.transactions
 
-	// Pas de user = episodes gratuits seulement
-	if(!_user){
+	// Pas de user ou par de transaction = episodes gratuits seulement
+	if(!_user && !transactions.length){
 		query.where('is_free').eq(true)
 		return Promise.resolve({query})
 	}
@@ -217,10 +218,10 @@ function _search_async_user(query, opt){
 	const subscriptionApi = require('../subscription/subscription')
 
 	// Tous les abonnements de cet utilisateur
-	return subscriptionApi.getFromUserId(_user)
+	return subscriptionApi.getFromUser(_user, transactions)
 		.then(subs => {
 
-			// Filter pour limiter les abonnements qui concerne la Story en cours (d'après reading)
+			// Filter pour limiter les abonnements qui concernent la Story en cours (d'après reading)
 			subs = subs.filter(sub => {
 				if(!sub.reading) return false
 				const index = sub.reading.find(r => r._story == opt._story)

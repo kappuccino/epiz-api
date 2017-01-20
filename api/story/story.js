@@ -84,7 +84,10 @@ function search(opt){
 	return _search(query, opt)
 		.then(q => {
 			query = q.query
-			tools.trace(query._conditions)
+
+			//logger.debug('story search() parameters ------------------------------------------------')
+			//tools.trace(query._conditions)
+			//logger.debug('story search() parameters ------------------------------------------------')
 
 			return Promise.all([tools.queryResult(query), tools.queryTotal(query)])
 		})
@@ -195,7 +198,7 @@ function _search(query, opt){
 	query = tools.sanitizeSearch(query, opt)
 
 	// ASYNC
-	if('_user' in opt){
+	if(opt.fromUser){
 		async = _search_async(query, opt)
 	}
 
@@ -216,27 +219,31 @@ function _search_async(query, opt){
 
 function _search_async_user(query, opt){
 
+	//console.log('_search_async_user', opt)
+
 	// Objectif, avoir une lite d'ID de story autorisé
 	// se basé sur la _serie
 
 	const _user = opt._user
+	let transactions = opt.transactions
 
-	// Pas de user = histoire gratuite seulement
-	if(!_user){
-		query.where('is_free').eq(true)
+	// Pas de user ou par de transaction = histoire gratuite seulement
+	if(!_user && !transactions.length){
 		return Promise.resolve({query})
 	}
 
 	// Pour un user donnée, on determine la liste des histoire auxquelle il a droit
 	const subscriptionApi = require('../subscription/subscription')
 
-	return subscriptionApi.getFromUserId(_user)
+	return subscriptionApi.getFromUser(_user, transactions)
 		.then(subs => {
 
 			// Filter pour limiter les abonnements à la série
 			subs = subs.filter(sub => sub._serie == opt._serie)
+			console.log('nombre abonnement pour ce use', subs.length)
 			if(!subs.length){
-				query.where('_id').eq('000000000000000000000000') // Force an empty result
+				query.where('is_free').eq(true)
+				//query.where('_id').eq('000000000000000000000000') // Force an empty result
 				return {query}
 			}
 
@@ -247,8 +254,10 @@ function _search_async_user(query, opt){
 				const _ids = sub.reading.map(r => r._story)
 				stories = [...stories, ..._ids]
 			})
+			console.log('nombre histoire concerné par cette abonneement', stories.length)
 			if(!stories.length){
-				query.where('_id').eq('000000000000000000000000') // Force an empty result
+				query.where('is_free').eq(true)
+				//query.where('_id').eq('000000000000000000000000') // Force an empty result
 				return {query}
 			}
 
@@ -258,6 +267,7 @@ function _search_async_user(query, opt){
 				return acc
 			}, [])
 
+			console.log('id des histoires concernees', stories)
 			query.where('_id').in(stories)
 			return {query}
 		})

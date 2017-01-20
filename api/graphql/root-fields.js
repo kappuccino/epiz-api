@@ -3,6 +3,7 @@ const {
 	GraphQLString, GraphQLInt, GraphQLList, GraphQLBoolean
 } = require('graphql')
 
+const { SearchFaq, Faq } = require('./fields/faq')
 const { SearchSerie, Serie } = require('./fields/serie')
 const { SearchStory, Story } = require('./fields/story')
 const { SearchEpisode, Episode } = require('./fields/episode')
@@ -11,6 +12,33 @@ const { SearchSubscription, Subscription, ActiveSubscription } = require('./fiel
 const { SearchTransaction, Transaction, StatsTransaction } = require('./fields/transaction')
 
 ////////////////////////////////
+
+const searchFaq = {
+	type: SearchFaq,
+	args: {
+		limit: { type: GraphQLInt },
+		skip: { type: GraphQLInt },
+		question: { type: GraphQLString }
+	},
+	resolve: (obj, args, root, ast) => {
+		const faqAPI = require('../faq/faq')
+		return faqAPI.search(args)
+
+	}
+}
+
+const getFaq = {
+	type: Faq,
+	args: {
+		_id: { type: GraphQLString }
+	},
+	resolve: (obj, {_id}, root, ast) => {
+		const faqAPI = require('../faq/faq')
+		return faqAPI.getById(_id)
+	}
+}
+
+
 
 const searchSerie = {
 	type: SearchSerie,
@@ -144,13 +172,19 @@ const searchSubscription = {
 	args: {
 		limit: { type: GraphQLInt },
 		skip: { type: GraphQLInt },
-		_user: { type: GraphQLString },
 		starts: { type: GraphQLString },
 		ends: { type: GraphQLString },
-		fromUser: { type: GraphQLBoolean }
+		fromUser: { type: GraphQLBoolean },
+		_user: { type: GraphQLString },
+		transactions: { type: GraphQLString }
 	},
 	resolve: (obj, args, root, ast) => {
 		const api = require('../subscription/subscription')
+		if(args.transactions){
+			args['transactions.ref'] = JSON.parse(args.transactions) || []
+			delete args.transactions
+		}
+
 		return api.search(args)
 	}
 }
@@ -218,6 +252,9 @@ const getTransaction = {
 
 
 module.exports = {
+	searchFaq,
+	getFaq,
+
 	searchSerie,
 	getSerie,
 

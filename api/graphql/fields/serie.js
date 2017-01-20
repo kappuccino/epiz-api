@@ -26,7 +26,9 @@ const Serie = new GraphQLObjectType({
 			stories: {
 				type: new GraphQLList(Story),
 				args: {
-					_user: { type: GraphQLString }
+					fromUser: { type: GraphQLBoolean },
+					_user: { type: GraphQLString },
+					transactions: { type: GraphQLString }
 				},
 				resolve: (_, args, root, ast) => storiesFromSerie(_._id, args)
 			}
@@ -64,6 +66,8 @@ function episodeCount(_serie){
 }
 
 function storiesFromSerie(_serie, args={}){
+
+	if(args.transactions) args.transactions = JSON.parse(args.transactions) || []
 
 	const api = require('../../story/story')
 

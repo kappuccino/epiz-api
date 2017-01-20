@@ -54,6 +54,28 @@ function getFromUserId(_user){
 
 }
 
+function getFromUser(_user, transactions){
+
+	return new Promise((resolve, reject) => {
+
+		_user = new mongoose.Types.ObjectId(_user || '000000000000000000000000')
+
+		const cond = {
+			$or: [
+				{_user},
+				{'transactions.ref': {$in: transactions}}
+			]
+		}
+
+		model.find(cond).lean().exec((err, docs) => {
+			if(err) return reject(err)
+			resolve(tools.toObject(docs || []))
+		})
+
+	})
+
+}
+
 function search(opt){
 
 	let query = model.find().lean()
@@ -63,6 +85,12 @@ function search(opt){
 		.then(q => {
 			query = q.query
 			//console.log(JSON.stringify(query._conditions, null, 2))
+
+			logger.debug('subscription search() parameters ------------------------------------------------')
+			console.log(query._conditions)
+			logger.debug('subscription search() parameters ------------------------------------------------')
+
+
 			return Promise.all([tools.queryResult(query), tools.queryTotal(query)])
 		})
 		.then(([data, total]) => {
@@ -392,30 +420,36 @@ function _duration(time){
 
 function _search(query, opt){
 
-	(['_serie', '_story', '_episode', '_user'].forEach(f => {
+	(['_serie', '_story', '_episode'].forEach(f => {
 		if(!opt[f]) return;
 		const val =  new mongoose.Types.ObjectId(opt[f])
 		query.where(f).eq(val)
 	}))
 
 	if(opt.fromUser){
-		const _user = opt._user
+		const or = []
 
-		// _user in option but empty => serve dumb data
+		const _user = opt._user
 		if(_user){
-			const val =  new mongoose.Types.ObjectId(opt._user)
-			query.where('_user').eq(val)
-		}else{
+			or.push( {'_user': new mongoose.Types.ObjectId(_user)} )
+		}
+
+		const ref = opt['transactions.ref'] || false
+		if(ref.length){
+			const r = Array.isArray(ref)
+				? {'transactions.ref': {$in: ref}}
+				: {'transactions.ref': ref}
+
+			or.push(r)
+		}
+
+		// On demande un user, mais on ne peu pas l'identifier => force []
+		if(!or.length){
 			query.where('_user').eq('000000000000000000000000') // query will returns no data
 		}
+
 	}
 
-	if('transactions.ref' in opt){
-		const ref = opt['transactions.ref']
-		Array.isArray(ref)
-			? query.where('transactions.ref').in(ref)
-			: query.where('transactions.ref').eq(ref)
-	}
 
 	if('starts' in opt && opt.starts){
 		const starts = new Date(opt.starts)
@@ -660,6 +694,7 @@ module.exports = {
 	getById,
 	getFromTransactionId,
 	getFromUserId,
+	getFromUser,
 	search,
 	create,
 	update,

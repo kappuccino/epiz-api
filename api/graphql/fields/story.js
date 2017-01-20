@@ -27,7 +27,8 @@ const Story = new GraphQLObjectType({
 				type: new GraphQLList(Episode),
 				args: {
 					fromUser: { type: GraphQLBoolean },
-					_user: { type: GraphQLString }
+					_user: { type: GraphQLString },
+					transactions: { type: GraphQLString }
 				},
 				resolve: (_, args, root, ast) => episodesFromStory(_._id, args)
 			}
@@ -62,6 +63,8 @@ function getSerie(_serie){
 
 function episodesFromStory(_story, args={}){
 	const api = require('../../episode/episode')
+
+	if(args.transactions) args.transactions = JSON.parse(args.transactions) || []
 
 	return api.search(Object.assign({}, {_story}, args))
 		.then(res => res.data)
