@@ -56,6 +56,7 @@ function start(cb){
 	require('./api/subscription/routes')(app)
 	require('./api/transaction/routes')(app)
 	require('./api/faq/routes')(app)
+	require('./api/announcement/routes')(app)
 	require('./api/plan/routes')(app)
 	require('./api/cron/routes')(app)
 
