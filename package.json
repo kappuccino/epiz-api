@@ -9,15 +9,12 @@
     "url": "git@bitbucket.org:kappuccino/epiz-api.git"
   },
   "engines": {
-    "node": "6.7.0",
-    "npm": "3.10.0"
+    "node": "6.9.2",
+    "npm": "3.10.9"
   },
   "scripts": {
     "test": "node ./tests/all",
-    "start": "node app",
-    "watch": "webpack -w --env.dev",
-    "build": "webpack --env.dev",
-    "build:prod": "webpack --env.prod -p"
+    "start": "node app"
   },
   "dependencies": {
     "amqp": "^0.2.6",

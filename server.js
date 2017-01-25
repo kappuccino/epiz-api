@@ -15,8 +15,8 @@ function start(cb){
 	app.use(compress())
 
 	// Check auth header
-	const auth = require('./api/auth')
-	app.use(auth(app))
+	//const auth = require('./api/auth')
+	//app.use(auth(app))
 
 	// Log strategy
 	const logger = require('morgan')
