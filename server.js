@@ -7,7 +7,7 @@ function start(cb){
 
 	app.disable('x-powered-by')
 
-	app.set('port', process.env.PORT_HTTPS)
+	app.set('port', process.env.PORT_HTTPS || process.env.PORT)
 	app.set('env', process.env.NODE_ENV == 'production' ? 'production' : 'development')
 
 	// Gzip
@@ -72,7 +72,7 @@ function start(cb){
 	// mount the router on the app
 	app.use('/', router)
 
-	app.listen = function(port, altPort, cb){
+	app.listen = function(port, cb){
 
 		// HTTPS
 		if(process.env.EPIZ_SSL_KEY) {
@@ -92,14 +92,14 @@ function start(cb){
 		// HTTPS
 		else{
 			const http = require('http')
-			const alt = http.createServer(this)
-			return alt.listen.apply(alt, [altPort, cb]);
+			const server = http.createServer(this)
+			return server.listen.apply(server, [port, cb]);
 		}
 
 	};
 
 	// Let's go
-	server = app.listen(app.get('port'), process.env.PORT_HTTP, function(){
+	server = app.listen(app.get('port'), function(){
 		cb(null, `express listening on port ${app.get('port')}`)
 	})
 
