@@ -74,24 +74,28 @@ function start(cb){
 
 	app.listen = function(port, altPort, cb){
 
-		// HTTP (only for dev)
-		if(app.get('env') === 'development'){
-			const http = require('http')
-			const alt = http.createServer(this)
-			alt.listen.apply(alt, [altPort]);
+		// HTTPS
+		if(process.env.EPIZ_SSL_KEY) {
+			const https = require('https')
+			const fs = require('fs')
+
+			const options = {
+				key: fs.readFileSync(process.env.EPIZ_SSL_KEY),
+				cert: fs.readFileSync(process.env.EPIZ_SSL_CERT)
+			}
+
+			const server = https.createServer(options, this)
+			return server.listen.apply(server, [port, cb]);
+
 		}
 
 		// HTTPS
-		const https = require('https')
-		const fs = require('fs')
-
-		const options = {
-			key: fs.readFileSync(process.env.EPIZ_SSL_KEY),
-			cert: fs.readFileSync(process.env.EPIZ_SSL_CERT)
+		else{
+			const http = require('http')
+			const alt = http.createServer(this)
+			return alt.listen.apply(alt, [altPort, cb]);
 		}
 
-		const server = https.createServer(options, this)
-		return server.listen.apply(server, [port, cb]);
 	};
 
 	// Let's go
