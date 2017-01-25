@@ -50,7 +50,7 @@ function start(cb){
 
 	router.get('/', function search(req, res){
 		res.send(`
-  -- Epiz --------------------------------
+  -- Epiz, stories for kids -----------------
 
 	                    /
 	               ,.. /
