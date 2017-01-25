@@ -48,6 +48,24 @@ function start(cb){
 
 	const router = express.Router()
 
+	router.get('/', function search(req, res){
+		res.send(`
+  -- Epiz --------------------------------
+
+	                    /
+	               ,.. /
+	             ,'   ';
+	  ,,.__    _,' /';  .
+	 :','  ~~~~    '. '~
+	:' (   )         )::,
+	'. '. .=----=..-~  .;'
+	 '  ;'  ::   ':.  '"
+	   (:   ':    ;)
+	    \\   '"  ./
+	     '"      '"`)
+	})
+
+
 	require('./api/user/routes')(app)
 	require('./api/serie/routes')(app)
 	require('./api/story/routes')(app)
