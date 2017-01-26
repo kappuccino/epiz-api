@@ -13,10 +13,7 @@ function getConnection(){
 	return new Promise(resolve => {
 
 		const params = {
-			host: process.env.RABBIT_HOST,
-			port: process.env.RABBIT_PORT,
-			login: process.env.RABBIT_USER,
-			password: process.env.RABBIT_PASS
+			url: process.env.RABBIT_URL
 		}
 
 		connection = amqp.createConnection(params)

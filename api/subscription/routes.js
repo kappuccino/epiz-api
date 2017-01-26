@@ -146,7 +146,7 @@ module.exports = function(router){
 	 *
 	 * @apiParam {String} id The subscription id
 	 */
-	router.get('/subscription/forward', function update(req, res, next){
+	router.get('/subscription/:_id([0-9a-f]{24})/forward', function update(req, res, next){
 
 		// Check Auth
 		if(!tools.checkAuth('subscription_forward', req)){

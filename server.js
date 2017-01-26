@@ -107,7 +107,7 @@ function start(cb){
 
 		}
 
-		// HTTPS
+		// HTTP
 		else{
 			const http = require('http')
 			const server = http.createServer(this)
@@ -118,7 +118,7 @@ function start(cb){
 
 	// Let's go
 	server = app.listen(app.get('port'), function(){
-		cb(null, `express listening on port ${app.get('port')}`)
+		cb(null, `express listening on port ${app.get('port')} ${ process.env.EPIZ_SSL_KEY ? 'ssl enabled' : null}`)
 	})
 
 }

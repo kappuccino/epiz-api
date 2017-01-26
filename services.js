@@ -18,12 +18,12 @@ function start(cb){
 		// Mongo
 		function(next){
 			const conf = `(host:${process.env.MONGO_HOST} db:${process.env.MONGO_DB} user:${process.env.MONGO_USER})`;
-			process.stdout.write(`[ ] Starting mongodb... ${conf}`);
+			process.stdout.write(`[λ] Starting mongodb ${conf} ...`);
 
 			db.connect(() => {
-				readline.clearLine(process.stdout);
-				readline.cursorTo(process.stdout, 0);
-				console.log(`[✓] Mongodb started. ${conf}`);
+				//readline.clearLine(process.stdout);
+				//readline.cursorTo(process.stdout, 0);
+				console.log(`started.`);
 				next();
 			});
 
@@ -31,12 +31,12 @@ function start(cb){
 
 		// Express
 		function(next){
-			process.stdout.write(`[ ] Starting express...`);
+			process.stdout.write(`[λ] Starting express... `);
 
 			server.start((err, message) => {
-				readline.clearLine(process.stdout);
-				readline.cursorTo(process.stdout, 0);
-				console.log(`[✓] Express started. (${message})`);
+				//readline.clearLine(process.stdout);
+				//readline.cursorTo(process.stdout, 0);
+				console.log(`started. (${message})`);
 				next();
 			});
 		}
