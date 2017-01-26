@@ -86,9 +86,10 @@ function search(opt){
 			query = q.query
 			//console.log(JSON.stringify(query._conditions, null, 2))
 
-			logger.debug('subscription search() parameters ------------------------------------------------')
+			console.log('subscription search() parameters ------------------------------------------------')
+			console.log(opt)
 			console.log(query._conditions)
-			logger.debug('subscription search() parameters ------------------------------------------------')
+			console.log('---------------------------------------------------------------------------------')
 
 
 			return Promise.all([tools.queryResult(query), tools.queryTotal(query)])
@@ -111,7 +112,7 @@ function create(data){
 
 		// Consolidate (find first Story + first Episode)
 
-		console.log(JSON.stringify(data, null, 2))
+		//console.log(JSON.stringify(data, null, 2))
 
 		return _firstStoryAndEpisode(data._serie, data._story, data._episode)
 			.then(first => {
@@ -443,9 +444,13 @@ function _search(query, opt){
 			or.push(r)
 		}
 
-		// On demande un user, mais on ne peu pas l'identifier => force []
+		// On demande un user, mais on ne peut pas l'identifier => force []
 		if(!or.length){
 			query.where('_user').eq('000000000000000000000000') // query will returns no data
+		}
+		// On applique les conditions
+		else{
+			query.or(or)
 		}
 
 	}

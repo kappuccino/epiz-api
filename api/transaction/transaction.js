@@ -47,6 +47,8 @@ function search(opt){
 		platform: '$transactions.platform',
 		amount: '$transactions.amount',
 		duration: '$transactions.duration',
+		method: '$transactions.method',
+		is_free: '$transactions.is_free',
 		type: '$transactions.type'
 	}
 
@@ -390,7 +392,7 @@ function _exportCSV(data){
 			datum._id = datum._id.toString()
 			datum.date = moment(datum.date).format('YYYY-MM-DD HH:mm:ss')
 
-			datum.plateform = datum.plateform || ''
+			datum.platform = datum.platform || ''
 			datum.method = datum.method || ''
 
 			datum.is_free = datum.is_free ? 'oui' : 'non'
@@ -400,7 +402,7 @@ function _exportCSV(data){
 
 		const options = {
 			data: newData,
-			fields:     ['_id', 'date', 'plateform',  'ref', 'amount',  'duration', 'is_free', 'method'],
+			fields:     ['_id', 'date', 'platform',  'ref', 'amount',  'duration', 'is_free', 'method'],
 			fieldNames: ['#',  'date',  'plateforme', 'ref', 'montant', 'duree',    'gratuit', 'moyen_paiement'],
 			del: '\t',
 			quotes: ''
