@@ -38,7 +38,7 @@ const SearchUser= new GraphQLObjectType({
 function activeSubscriptionCount(_user){
 	const api = require('../../subscription/subscription')
 
-	return api.search({_user})
+	return api.search({fromUser:true, _user})
 		.then(res => res.total)
 }
 

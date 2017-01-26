@@ -185,6 +185,8 @@ const searchSubscription = {
 			delete args.transactions
 		}
 
+		if(args._user) args.fromUser = true
+
 		return api.search(args)
 	}
 }
