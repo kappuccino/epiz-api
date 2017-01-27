@@ -209,15 +209,15 @@ function extend(_id, data){
 				if(ends.isBefore(new Date())) ends = moment()
 				ends = ends.add(duration, 'days').toDate()
 
-				/*console.log('*'.repeat(100))
+				console.log('*'.repeat(100))
 				console.log(data)
-				console.log('*'.repeat(100))*/
+				console.log('*'.repeat(100))
 
-				const transaction = _transaction(duration, data.transaction)
+				const transaction = _transaction(duration, data)
 
-				/*console.log('*'.repeat(100))
+				console.log('*'.repeat(100))
 				console.log(transaction)
-				console.log('*'.repeat(100))*/
+				console.log('*'.repeat(100))
 
 				transaction.type = 'extend'
 
@@ -486,9 +486,11 @@ function _transaction(duration, data={}){
 		duration,
 		date: new Date(),
 		type: data.type || 'create',
-		is_free: data.is_free !== undefined ? data.is_free : false,
 		amount: _amount(data.amount)
 	})
+
+	transaction.is_free = data.is_free !== undefined ? data.is_free : false
+	if(transaction.amount === 0) transaction.is_free = true
 
 	if(transaction.is_free) transaction.amount = 0
 
@@ -500,6 +502,10 @@ function _transaction(duration, data={}){
 }
 
 function _amount(amount){
+
+	if(amount === undefined) return 0;
+	console.log(`_amount(${amount})`)
+
 	const float = parseFloat(amount)
 	if(!isNaN(float)) return float
 

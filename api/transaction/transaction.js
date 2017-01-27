@@ -125,13 +125,29 @@ function timeStats(args){
 	return new Promise((resolve, reject) => {
 
 		const query = {}
+		let starts, ends
 		if(args.starts || args.ends) query['transactions.date'] = {}
-		if(args.starts) query['transactions.date']['$gte'] = new Date(args.starts)
-		if(args.ends)   query['transactions.date']['$lte'] = new Date(args.ends)
+
+		if(args.starts){
+			starts = new Date(args.starts)
+			query['transactions.date']['$gte'] = starts
+		}
+
+		if(args.ends){
+			ends = new Date(args.ends)
+			query['transactions.date']['$lte'] = ends
+		}
+
+		console.log(query)
 
 		const options = {
 
 			query,
+
+			scope: {
+				starts: starts ? starts.getTime() : '',
+				ends: ends ? ends.getTime() : ''
+			},
 
 			map: function(){
 				var transactions = this.transactions
@@ -139,6 +155,11 @@ function timeStats(args){
 
 				transactions.forEach(function(transaction){
 					var d = new Date(transaction.date);
+
+					// Cas particulier quand les transactions sont hors des limites
+					if(starts && d.getTime() < starts) return
+					if(ends && d.getTime() > ends) return
+
 					var day = ("0" + d.getDate()).slice(-2);
 					var month = ("0" + d.getMonth()+1).slice(-2);
 					var date = d.getFullYear() +'-'+ month +'-'+ day;
