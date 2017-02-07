@@ -47,7 +47,7 @@ function getFromStory(_story){
 function search(opt){
 
 	let query = model.find().lean()
-	opt = Object.assign({}, {limit:100, skip:0}, opt)
+	opt = Object.assign({}, {limit: 100, skip: 0, sort: {'index': 1}}, opt)
 
 	// Note: mongoose query are not promises, but they do have .then(). Solution, using an object wrapper
 
