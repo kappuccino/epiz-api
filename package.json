@@ -1,6 +1,10 @@
 {
   "name": "epiz-api",
   "version": "0.0.1",
+  "mobile_version": {
+    "ios": "2.0.0",
+    "android": "2.0.0"
+  },
   "main": "app.js",
   "description": "Epiz API",
   "license": "WTFPL",
@@ -9,7 +13,7 @@
     "url": "git@bitbucket.org:kappuccino/epiz-api.git"
   },
   "engines": {
-    "node": "6.9.2",
+    "node": "6.11.1",
     "npm": "3.10.9"
   },
   "scripts": {
@@ -22,6 +26,7 @@
     "aws-sdk": "^2.7.7",
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.14.1",
+    "compare-versions": "^3.0.0",
     "compression": "^1.6.0",
     "dotenv": "^2.0.0",
     "errorhandler": "^1.4.2",
