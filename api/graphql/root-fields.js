@@ -3,6 +3,7 @@ const {
 	GraphQLString, GraphQLInt, GraphQLList, GraphQLBoolean
 } = require('graphql')
 
+const { Version } = require('./fields/version')
 const { SearchFaq, Faq } = require('./fields/faq')
 const { SearchSerie, Serie } = require('./fields/serie')
 const { SearchStory, Story } = require('./fields/story')
@@ -12,6 +13,21 @@ const { SearchSubscription, Subscription, ActiveSubscription } = require('./fiel
 const { SearchTransaction, Transaction, StatsTransaction } = require('./fields/transaction')
 
 ////////////////////////////////
+
+const version = {
+	type: Version,
+	args: {
+		version: { type: GraphQLString },
+		platform: { type: GraphQLString },
+	},
+	resolve: (obj, {version, platform}, root, ast) => {
+		const api = require('../version/version')
+		return api.check(platform, version)
+	}
+}
+
+
+
 
 const searchFaq = {
 	type: SearchFaq,
@@ -275,6 +291,7 @@ module.exports = {
 
 	searchTransaction,
 	getTransaction,
-	statsTransaction
+	statsTransaction,
 
+	version
 }

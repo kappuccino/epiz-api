@@ -357,6 +357,31 @@ function forward(_id){
 
 }
 
+function noRecipient(_id){
+
+	return new Promise((resolve, reject) => {
+
+		if(!_id) throw new Error('No _id')
+		_id = new mongoose.Types.ObjectId(_id)
+
+		getById(_id)
+			.then(subscription => {
+
+				const $subscription = model(subscription)
+				$subscription.set('reader', '')
+				$subscription.isNew = false
+
+				return $subscription.save()
+			})
+			.then($subscription => $subscription.toObject())
+			.then(subscription => resolve(tools.toObject(subscription)))
+			.catch(err => reject(err))
+
+	})
+
+}
+
+
 function sendEpisodeByEmail(_id, bypass=false){
 
 	const {	graphql } = require('graphql')
@@ -710,6 +735,7 @@ module.exports = {
 	create,
 	update,
 	extend,
+	noRecipient,
 	sync,
 	remove,
 	removeForUser,

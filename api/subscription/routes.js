@@ -160,6 +160,27 @@ module.exports = function(router){
 	})
 
 	/**
+	 * @api {get} /subscription/:id/forward Remove recipient
+	 * @apiName SubscriptionNoRecipient
+	 * @apiGroup Subscription
+	 * @apiPermission subscription_norecipient
+	 *
+	 * @apiParam {String} id The subscription id
+	 */
+	router.get('/subscription/:_id([0-9a-f]{24})/no-recipient', function update(req, res, next){
+
+		// Check Auth
+		if(!tools.checkAuth('subscription_norecipient', req)){
+			return tools.requestUnauthorized('subscription_norecipient', req, res, next);
+		}
+
+		subscription.noRecipient(req.params._id)
+			.then(data => tools.requestSuccess(data, req, res))
+			.catch(err => tools.requestFail(err, req, res, next))
+
+	})
+
+	/**
 	 * @api {post} /subscription/:id/sync Attach _user to All subscription from a list of transaction ref
 	 * @apiName SubscriptionSync
 	 * @apiGroup Subscription

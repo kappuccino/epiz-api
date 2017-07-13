@@ -48,7 +48,7 @@ function start(cb){
 
 	const router = express.Router()
 
-	router.get('/', function search(req, res){
+	router.get('/', function root(req, res){
 		res.send(`
   -- Epiz, stories for kids -----------------
 
@@ -65,7 +65,7 @@ function start(cb){
 	     '"      '"`)
 	})
 
-
+	require('./api/version/routes')(app)
 	require('./api/user/routes')(app)
 	require('./api/serie/routes')(app)
 	require('./api/story/routes')(app)
@@ -98,6 +98,7 @@ function start(cb){
 			const fs = require('fs')
 
 			const options = {
+				passphrase: 'abcd',
 				key: fs.readFileSync(process.env.EPIZ_SSL_KEY),
 				cert: fs.readFileSync(process.env.EPIZ_SSL_CERT)
 			}
