@@ -10,7 +10,7 @@ function getConnection(){
 
 	//console.log('getConnection()')
 
-	return new Promise(resolve => {
+	return new Promise((resolve, reject) => {
 
 		const params = {
 			url: process.env.RABBIT_URL
@@ -21,6 +21,7 @@ function getConnection(){
 		connection.on('error', err => {
 			console.error(err)
 			console.error(err.stack)
+			reject(err)
 		})
 
 		connection.on('ready', () => {
