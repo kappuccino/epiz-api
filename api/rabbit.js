@@ -54,13 +54,13 @@ function getExchange(connection){
 
 function publish(key, msg){
 
-
+	console.log('Rabbit push 1 msg')
 
 	return getConnection()
 		.then(connection => getExchange(connection))
 		.then(exchange => {
 
-			//console.log('Publish()')
+			console.log('Publish()')
 
 			return new Promise((resolve, reject) => {
 

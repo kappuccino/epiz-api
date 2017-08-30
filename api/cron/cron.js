@@ -47,6 +47,8 @@ function mail(){
 	const mail = (sub, cb) => {
 		sub = JSON.stringify(sub)
 
+		console.log('Push to rabbit 1 mail')
+
 		rabbit.publish('mail', sub)
 			.then(() => cb())
 			.catch(e => cb(e))

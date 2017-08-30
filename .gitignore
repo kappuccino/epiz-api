@@ -21,3 +21,5 @@ tests/*.jpg
 /.cert.csr
 /.certificate.pem
 /.private.key
+/cert-new
+/cert-start
