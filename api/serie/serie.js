@@ -155,8 +155,8 @@ function _reading($serie){
 	let stories, episodes
 
 	return Promise.all([
-		storyApi.search({_serie: _id, noLimit: true}),
-		episodeApi.search({_serie: _id, noLimit: true})
+		storyApi.search({_serie: _id, noLimit: true, sort: {'index': 1}}),
+		episodeApi.search({_serie: _id, noLimit: true, sort: {'index': 1}})
 	])
 
 		// On recupère toute les histoires et les épisodes de la série
@@ -165,7 +165,7 @@ function _reading($serie){
 			let final = []
 
 			const episodes = episode.data
-				.sort((a, b) => a.index > b.index)
+				//.sort((a, b) => a.index > b.index) NE PAS UTILISER MAIS PRENDRE LE TRI DE EPISODE.SEARCH (API)
 				.map(ep => ({
 					_episode: new mongoose.Types.ObjectId(ep._id),
 					_story: new mongoose.Types.ObjectId(ep._story),
@@ -182,7 +182,7 @@ function _reading($serie){
 			// On fait un gros tri pour avoir une liste ordonnée des épisodes
 
 			story.data
-				.sort((a, b) => a.index > b.index)
+				//.sort((a, b) => a.index > b.index) MEME REMARQUE QUE PLUS HAUT
 				.forEach(story => {
 					const ep = (episodes[story._id] || [])
 						.map(e => {
