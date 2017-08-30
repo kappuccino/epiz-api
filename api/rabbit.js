@@ -4,11 +4,11 @@ let connection
 function getConnection(){
 
 	if(connection){
-		//console.log('recycling connection')
+		console.log('recycling connection')
 		return Promise.resolve(connection)
 	}
 
-	//console.log('getConnection()')
+	console.log('getConnection()')
 
 	return new Promise((resolve, reject) => {
 
@@ -19,6 +19,7 @@ function getConnection(){
 		connection = amqp.createConnection(params)
 
 		connection.on('error', err => {
+			console.error('Rabbit error')
 			console.error(err)
 			console.error(err.stack)
 			reject(err)
