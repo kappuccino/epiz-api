@@ -3,6 +3,7 @@ let connection
 
 function getConnection(){
 
+	console.log('????', connection)
 	if(connection){
 		console.log('recycling connection')
 		return Promise.resolve(connection)
