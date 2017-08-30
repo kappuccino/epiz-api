@@ -17,7 +17,7 @@ function start(cb){
 
 		// Mongo
 		function(next){
-			const conf = `(host:${process.env.MONGO_HOST} db:${process.env.MONGO_DB} user:${process.env.MONGO_USER})`;
+			const conf = `(host:${process.env.MONGO_HOST} db:${process.env.MONGO_DB} user:${process.env.MONGO_LOGIN})`;
 			process.stdout.write(`[λ] Starting mongodb ${conf} ...`);
 
 			db.connect(() => {

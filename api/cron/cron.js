@@ -49,7 +49,7 @@ function mail(){
 
 		rabbit.publish('mail', sub)
 			.then(() => cb())
-			.catch(() => cb())
+			.catch(e => cb(e))
 
 	}
 
@@ -60,8 +60,11 @@ function mail(){
 			reader: {$exists: true, $ne: ''}
 		}
 
+		console.log(conds)
+
 		model.find(conds).lean().exec()
 			.then(subs => {
+				console.log('<count>', subs.length)
 				subscriptions = subs
 				return rabbit.getConnection()
 			})

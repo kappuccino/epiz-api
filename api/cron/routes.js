@@ -4,7 +4,7 @@ const tools = require('../tools')
 module.exports = function(router){
 
 	/**
-	 * @api {post} /cron/forward Forward all subscription
+	 * @api {get} /cron/forward Forward all subscription
 	 * @apiName CronForward
 	 * @apiGroup Cron
 	 * @apiPermission cron_forward
@@ -24,7 +24,7 @@ module.exports = function(router){
 	})
 
 	/**
-	 * @api {post} /cron/mail Forward all subscription
+	 * @api {get} /cron/mail Forward all subscription
 	 * @apiName CronMail
 	 * @apiGroup Cron
 	 * @apiPermission cron_mail
@@ -36,6 +36,8 @@ module.exports = function(router){
 		if(!tools.checkAuth('cron_mail', req)){
 			return tools.requestUnauthorized('cron_mail', req, res, next);
 		}
+
+		console.log('Cront mail route reached')
 
 		cron.mail()
 			.then(data => tools.requestSuccess(data, req, res))

@@ -6,7 +6,7 @@ const cluster = require('cluster')
 
 if(cluster.isMaster) {
 
-	const numWorkers = 1 ///process.env.WEB_CONCURRENCY || require('os').cpus().length
+	const numWorkers = process.env.WEB_CONCURRENCY || require('os').cpus().length
 	console.log(`Master cluster setting up ${numWorkers} workers...`)
 
 	for(let i = 0; i < numWorkers; i++) {

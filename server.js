@@ -7,8 +7,8 @@ function start(cb){
 
 	app.disable('x-powered-by')
 
-	app.set('port', process.env.PORT_HTTPS || process.env.PORT)
-	app.set('env', process.env.NODE_ENV == 'production' ? 'production' : 'development')
+	app.set('port', process.env.EPIZ_SSL_KEY ? process.env.PORT_HTTPS : process.env.PORT)
+	app.set('env', process.env.NODE_ENV === 'production' ? 'production' : 'development')
 
 	// Gzip
 	const compress = require('compression')
@@ -41,7 +41,7 @@ function start(cb){
 		res.header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, OPTIONS")
 
 		// intercept OPTIONS method
-		if('OPTIONS' == req.method) return res.sendStatus(200)
+		if('OPTIONS' === req.method) return res.sendStatus(200)
 
 		next()
 	})
@@ -119,7 +119,7 @@ function start(cb){
 
 	// Let's go
 	server = app.listen(app.get('port'), function(){
-		cb(null, `express listening on port ${app.get('port')} ${ process.env.EPIZ_SSL_KEY ? 'ssl enabled' : null}`)
+		cb(null, `express listening on port ${app.get('port')} ${ process.env.EPIZ_SSL_KEY ? 'ssl enabled' : ''}`)
 	})
 
 }
