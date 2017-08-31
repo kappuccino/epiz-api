@@ -603,7 +603,7 @@ function _reading($subscription){
 		episodeApi.getById(_episode)
 	])
 
-	// On recupère l'Index de l'Episode et de l'histoire courante
+		// On recupère l'Index de l'Episode et de l'histoire courante
 		.then(([story, episode]) => {
 			indexStory = story.index
 			indexEpisode = episode.index

@@ -22,8 +22,8 @@ module.exports = function(router){
 				"price": 29.99,
 				"gift": true,
 				"platform": "ios"
-			}
-			/*,{
+			},
+			{
 				"name": "1 mois (28 épisodes)",
 				"inappkey": "fr.epiz.oneMonth",
 				"days": "28",
@@ -38,7 +38,7 @@ module.exports = function(router){
 				"price": 29.99,
 				"gift": true,
 				"platform": "android"
-			}*/
+			}
 		]
 
 		tools.requestSuccess(plans, req, res)
