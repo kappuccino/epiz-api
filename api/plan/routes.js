@@ -20,7 +20,7 @@ module.exports = function(router){
 				"inappkey": "oneYear_ns",
 				"days": "365",
 				"price": 29.99,
-				"gift": true,
+				"gift": false,
 				"platform": "ios"
 			},
 			{
