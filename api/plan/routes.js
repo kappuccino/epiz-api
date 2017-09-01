@@ -25,7 +25,7 @@ module.exports = function(router){
 			},
 			{
 				"name": "1 mois (28 épisodes)",
-				"inappkey": "fr.epiz.oneMonth",
+				"inappkey": "fr.epiz.28",
 				"days": "28",
 				"price": 2.99,
 				"gift": false,
@@ -33,7 +33,7 @@ module.exports = function(router){
 			},
 			{
 				"name": "1 an (364 épisodes)",
-				"inappkey": "fr.epiz.oneYear",
+				"inappkey": "fr.epiz.365",
 				"days": "365",
 				"price": 29.99,
 				"gift": true,
