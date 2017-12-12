@@ -15,14 +15,14 @@ module.exports = function(router){
 				"gift": false,
 				"platform": "ios"
 			},
-			{
+			/*{
 				"name": "1 an (364 épisodes)",
 				"inappkey": "oneYear_ns",
 				"days": "365",
 				"price": 29.99,
 				"gift": false,
 				"platform": "ios"
-			},
+			},*/
 			{
 				"name": "1 mois (28 épisodes)",
 				"inappkey": "fr.epiz.28",
@@ -31,14 +31,14 @@ module.exports = function(router){
 				"gift": false,
 				"platform": "android"
 			},
-			{
+			/*{
 				"name": "1 an (364 épisodes)",
 				"inappkey": "fr.epiz.365",
 				"days": "365",
 				"price": 29.99,
 				"gift": true,
 				"platform": "android"
-			}
+			}*/
 		]
 
 		tools.requestSuccess(plans, req, res)
