@@ -11,7 +11,7 @@ module.exports = function(router){
 				"name": "1 mois (28 épisodes)",
 				"inappkey": "oneMonth_ns",
 				"days": "28",
-				"price": 2.99,
+				"price": 9.99,
 				"gift": false,
 				"platform": "ios"
 			},
@@ -27,7 +27,7 @@ module.exports = function(router){
 				"name": "1 mois (28 épisodes)",
 				"inappkey": "fr.epiz.28",
 				"days": "28",
-				"price": 2.99,
+				"price": 9.99,
 				"gift": false,
 				"platform": "android"
 			},
